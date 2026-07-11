@@ -1,5 +1,6 @@
-package com.example.demo_mongo_api.controller;
+package com.example.demo_mongo_api;
 
+import com.example.demo_mongo_api.controller.ProductoController;
 import com.example.demo_mongo_api.exception.ProductoNotFoundException;
 import com.example.demo_mongo_api.model.Producto;
 import com.example.demo_mongo_api.service.ProductoService;

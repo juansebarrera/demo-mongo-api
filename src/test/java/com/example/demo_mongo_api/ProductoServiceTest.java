@@ -1,8 +1,10 @@
-package com.example.demo_mongo_api.service;
+package com.example.demo_mongo_api;
 
 import com.example.demo_mongo_api.exception.ProductoNotFoundException;
 import com.example.demo_mongo_api.model.Producto;
 import com.example.demo_mongo_api.repository.ProductoRepository;
+import com.example.demo_mongo_api.service.ProductoService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
