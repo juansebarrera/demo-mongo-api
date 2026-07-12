@@ -3,11 +3,13 @@ package com.example.demo_mongo_api;
 import com.example.demo_mongo_api.controller.ProductoController;
 import com.example.demo_mongo_api.exception.ProductoNotFoundException;
 import com.example.demo_mongo_api.model.Producto;
+import com.example.demo_mongo_api.security.JwtService;
 import com.example.demo_mongo_api.service.ProductoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -26,6 +28,12 @@ class ProductoControllerTest {
 
     @MockitoBean
     private ProductoService productoService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserDetailsService userDetailsService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
