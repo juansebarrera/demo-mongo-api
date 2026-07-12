@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,8 +29,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.NOT_FOUND.value(),
                 "Not Found",
                 ex.getMessage(),
-                request.getDescription(false).replace("uri=", "")
-        );
+                request.getDescription(false).replace("uri=", ""));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
@@ -62,9 +62,34 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
                 ex.getMessage(),
-                request.getDescription(false).replace("uri=", "")
-        );
+                request.getDescription(false).replace("uri=", ""));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    // 401 - Credenciales incorrectas en el login
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(
+            BadCredentialsException ex, WebRequest request) {
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED.value(),
+                "Unauthorized",
+                "Usuario o contraseña incorrectos",
+                request.getDescription(false).replace("uri=", ""));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    // 401 - Refresh token inválido o expirado
+    @ExceptionHandler(com.example.demo_mongo_api.exception.RefreshTokenException.class)
+    public ResponseEntity<ErrorResponse> handleRefreshTokenException(
+            com.example.demo_mongo_api.exception.RefreshTokenException ex, WebRequest request) {
+
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED.value(),
+                "Unauthorized",
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", ""));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     // 500 - Cualquier otro error no controlado
@@ -78,8 +103,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Internal Server Error",
                 "Ocurrió un error inesperado. Contacta al administrador.",
-                request.getDescription(false).replace("uri=", "")
-        );
+                request.getDescription(false).replace("uri=", ""));
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

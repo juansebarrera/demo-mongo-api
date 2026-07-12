@@ -16,6 +16,11 @@
       "type": "string"
     },
     {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
       "key": "clienteId",
       "value": "",
       "type": "string"
@@ -73,6 +78,10 @@
                   "        pm.collectionVariables.set('token', jsonData.token);",
                   "        console.log('Token guardado automáticamente en la variable {{token}}');",
                   "    }",
+                  "    if (jsonData.refreshToken) {",
+                  "        pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+                  "        console.log('RefreshToken guardado automáticamente en la variable {{refreshToken}}');",
+                  "    }",
                   "}",
                   "pm.test('Login exitoso (200)', function () {",
                   "    pm.response.to.have.status(200);",
@@ -94,6 +103,68 @@
               "raw": "{{baseUrl}}/api/auth/login",
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "login"]
+            },
+            "auth": { "type": "noauth" }
+          }
+        },
+        {
+          "name": "Refrescar token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.collectionVariables.set('token', jsonData.token);",
+                  "        console.log('Nuevo access token guardado en {{token}}');",
+                  "    }",
+                  "    if (jsonData.refreshToken) {",
+                  "        pm.collectionVariables.set('refreshToken', jsonData.refreshToken);",
+                  "        console.log('Nuevo refresh token guardado en {{refreshToken}} (el anterior queda invalidado)');",
+                  "    }",
+                  "}",
+                  "pm.test('Refresh exitoso (200)', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh-token"]
+            },
+            "auth": { "type": "noauth" }
+          }
+        },
+        {
+          "name": "Refrescar token (inválido o ya usado)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"token-que-no-existe-o-ya-fue-rotado\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh-token"]
             },
             "auth": { "type": "noauth" }
           }
