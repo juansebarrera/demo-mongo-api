@@ -141,25 +141,40 @@ src/main/resources/static/
 - `DELETE` en `/api/productos/{id}` y `/api/clientes/{id}` requiere rol `ADMIN` (`@PreAuthorize("hasRole('ADMIN')")`).
 - Errores 401 y 403 se responden en JSON desde un `AuthenticationEntryPoint` y `AccessDeniedHandler` custom.
 
-### Estado actual — pendiente
+### Bug resuelto: 401 después de login
 
-**Problema conocido:** después de login exitoso y redirección a `app.html`, las llamadas a `/api/productos` y `/api/clientes` retornan **401 "Token invalido o ausente"**.
+**Problema:** después de login exitoso y redirección a `app.html`, las llamadas a `/api/productos` y `/api/clientes` retornaban **401 "Token invalido o ausente"**.
 
-**Posibles causas a investigar:**
-- El token no se está enviando en el header `Authorization`.
-- El token no es válido o expiró al momento de validarlo en `JwtAuthenticationFilter`.
-- `UsuarioDetailsServiceImpl` no carga correctamente el usuario desde MongoDB.
-- Falta lógica de refresh automático cuando el token expira.
+**Causa raíz:** desajuste de nombres de campo entre backend y frontend.
 
-**Pasos para continuar:**
-1. Verificar en DevTools (Network) que el header `Authorization: Bearer ...` aparece en los requests.
-2. Inspeccionar el contenido del JWT (decodificar en jwt.io) para confirmar que tiene `roles` y no está expirado.
-3. Revisar `JwtService.isTokenValid()` y la firma HMAC.
-4. Revisar `UsuarioDetailsServiceImpl.loadUserByUsername()` para confirmar que busca el usuario correctamente en la colección `usuarios`.
-5. Implementar refresh automático del token en `api.js` cuando llegue un 401 (usar el `refreshToken` almacenado).
+El record `AuthResponse` serializaba el access token con el campo `"token"`:
+
+```java
+// AuthResponse.java (ANTES)
+public record AuthResponse(String token, String refreshToken) {}
+// JSON: {"token":"eyJhbG...", "refreshToken":"..."}
+```
+
+Pero el frontend leía `data.accessToken`, que era `undefined`:
+
+```javascript
+// auth.js — guardaba undefined
+const data = await API.post('/auth/login', { username, password });
+API.saveTokens(data.accessToken, data.refreshToken); // data.accessToken === undefined
+```
+
+Resultado: cada request enviaba `Bearer undefined` → JWT inválido → 401.
+
+**Fix:** `AuthResponse.java` renombrado de `token` a `accessToken`:
+
+```java
+// AuthResponse.java (DESPUÉS)
+public record AuthResponse(String accessToken, String refreshToken) {}
+// JSON: {"accessToken":"eyJhbG...", "refreshToken":"..."}
+```
+
+**Lección:** cuando el backend y frontend están en el mismo repo, verificar que los nombres de campo en DTOs/records coinciden exactamente con lo que el frontend espera leer. Los records de Java serializan por defecto con el nombre del campo, no con `@JsonProperty`.
 
 ## Pendientes
 
-- [ ] Debug y fix del rechazo de JWT después de login (ver sección GUI — Estado actual)
-- [ ] Refresh automático del token en `api.js` cuando expire
-- [ ] Tests automatizados para `/refresh-token` (probado manualmente en Postman)
+_No hay pendientes abiertos._
