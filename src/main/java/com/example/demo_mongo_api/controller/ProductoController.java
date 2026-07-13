@@ -9,6 +9,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,10 +28,17 @@ public class ProductoController {
     @Autowired
     private ProductoService productoService;
 
-    @Operation(summary = "Listar todos los productos")
+    @Operation(summary = "Listar productos con paginación y búsqueda")
     @GetMapping
-    public List<Producto> listar() {
-        return productoService.listarTodos();
+    public Page<Producto> listar(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "nombre") String sort,
+            @RequestParam(defaultValue = "asc") String direction,
+            @RequestParam(required = false) String search) {
+        Sort.Direction dir = "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(dir, sort));
+        return productoService.listarPaginado(search, pageable);
     }
 
     @Operation(summary = "Buscar un producto por su id")

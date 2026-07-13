@@ -102,6 +102,51 @@ mvn dependency:tree | findstr flapdoodle
 .\scripts\restore-mongo.ps1
 ```
 
+## Paginación y búsqueda
+
+`GET /api/productos` y `GET /api/clientes` soportan paginación, ordenamiento y búsqueda.
+
+### Parámetros query
+
+| Parámetro | Default | Descripción |
+|-----------|---------|-------------|
+| `page` | `0` | Número de página (0-indexed) |
+| `size` | `10` | Elementos por página |
+| `sort` | `nombre` | Campo por el cual ordenar |
+| `direction` | `asc` | Dirección del orden (`asc` o `desc`) |
+| `search` | _(vacío)_ | Término de búsqueda (nombre para productos, nombre o email para clientes) |
+
+### Ejemplos
+
+```bash
+# Primera página, 10 elementos, ordenados por nombre ascendente
+GET /api/productos
+
+# Página 2, 5 elementos, ordenados por precio descendente
+GET /api/productos?page=1&size=5&sort=precio&direction=desc
+
+# Buscar productos que contengan "teclado" en el nombre
+GET /api/productos?search=teclado
+
+# Buscar clientes por nombre o email
+GET /api/clientes?search=juan
+```
+
+### Respuesta
+
+```json
+{
+  "content": [{ "id": "...", "nombre": "...", ... }],
+  "totalElements": 50,
+  "totalPages": 5,
+  "number": 0,
+  "size": 10,
+  "first": true,
+  "last": false,
+  "empty": false
+}
+```
+
 ## ⚠️ Detalle importante de Spring Boot 4.x
 
 Spring Boot 4.x renombró varias propiedades relacionadas con Mongo:
@@ -269,8 +314,8 @@ public record AuthResponse(String accessToken, String refreshToken) {}
 
 ### Prioridad alta (producción)
 
-- [ ] Paginación y filtrado en `GET /api/productos` y `/api/clientes` (parámetros `page`, `size`, `sort`)
-- [ ] Búsqueda por nombre (productos) y email/nombre (clientes)
+- [x] Paginación y filtrado en `GET /api/productos` y `/api/clientes` (parámetros `page`, `size`, `sort`)
+- [x] Búsqueda por nombre (productos) y email/nombre (clientes)
 - [ ] Validación robusta con mensajes personalizados desde `messages.properties`
 - [ ] Health checks con `spring-boot-starter-actuator`
 

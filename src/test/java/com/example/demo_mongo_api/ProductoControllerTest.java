@@ -9,6 +9,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -16,6 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -38,19 +43,56 @@ class ProductoControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void listar_deberiaRetornar200YListaDeProductos() throws Exception {
+    void listar_deberiaRetornar200YPageDeProductos() throws Exception {
         Producto producto = new Producto();
         producto.setId("1");
         producto.setNombre("Mouse");
         producto.setPrecio(25.5);
         producto.setStock(100);
 
-        when(productoService.listarTodos()).thenReturn(List.of(producto));
+        Page<Producto> page = new PageImpl<>(List.of(producto), PageRequest.of(0, 10), 1);
+        when(productoService.listarPaginado(eq(null), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/productos"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].nombre").value("Mouse"))
-                .andExpect(jsonPath("$[0].precio").value(25.5));
+                .andExpect(jsonPath("$.content[0].nombre").value("Mouse"))
+                .andExpect(jsonPath("$.content[0].precio").value(25.5))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1));
+    }
+
+    @Test
+    void listar_conPagina0Size2_deberiaRetornarSolo2Elementos() throws Exception {
+        Producto p1 = new Producto();
+        p1.setId("1");
+        p1.setNombre("Mouse");
+        Producto p2 = new Producto();
+        p2.setId("2");
+        p2.setNombre("Teclado");
+
+        Page<Producto> page = new PageImpl<>(List.of(p1, p2), PageRequest.of(0, 2), 5);
+        when(productoService.listarPaginado(eq(null), any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/productos").param("page", "0").param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.totalElements").value(5));
+    }
+
+    @Test
+    void listar_conSearch_deberiaFiltrarPorNombre() throws Exception {
+        Producto producto = new Producto();
+        producto.setId("1");
+        producto.setNombre("Mouse Gamer");
+
+        Page<Producto> page = new PageImpl<>(List.of(producto), PageRequest.of(0, 10), 1);
+        when(productoService.listarPaginado(eq("Mouse"), any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/productos").param("search", "Mouse"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].nombre").value("Mouse Gamer"))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
