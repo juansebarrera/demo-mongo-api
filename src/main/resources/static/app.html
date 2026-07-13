@@ -14,6 +14,7 @@
       <nav>
         <a href="#" class="active" data-section="productos" onclick="App.showSection('productos')">Productos</a>
         <a href="#" data-section="clientes" onclick="App.showSection('clientes')">Clientes</a>
+        <a href="#" data-section="usuarios" id="navUsuarios" style="display:none" onclick="App.showSection('usuarios')">Usuarios</a>
       </nav>
       <div class="logout">
         <a href="#" onclick="App.logout()">Cerrar sesion</a>
@@ -74,6 +75,29 @@
         </div>
         <div class="pagination" id="paginationClientes"></div>
       </section>
+
+      <!-- Usuarios -->
+      <section id="section-usuarios" style="display:none">
+        <div class="page-header">
+          <h1>Usuarios</h1>
+          <div class="header-actions">
+            <button class="btn btn-primary" onclick="Usuarios.openCreate()">+ Nuevo</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Roles</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="usuariosTable"></tbody>
+          </table>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -133,9 +157,53 @@
     </div>
   </div>
 
+  <!-- Modal Usuarios -->
+  <div class="modal-overlay" id="modalOverlayU" onclick="Usuarios.closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h2 id="modalTitleU">Nuevo Usuario</h2>
+      <input type="hidden" id="formIdU">
+      <div class="form-group">
+        <label for="uUsername">Nombre de usuario *</label>
+        <input type="text" id="uUsername" required>
+      </div>
+      <div class="form-group" id="uPasswordGroup">
+        <label for="uPassword">Contraseña *</label>
+        <input type="password" id="uPassword" required>
+      </div>
+      <div class="form-group">
+        <label for="uRoles">Rol</label>
+        <select id="uRoles" class="form-select">
+          <option value="ROLE_USER">Usuario</option>
+          <option value="ROLE_ADMIN">Administrador</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="Usuarios.closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="Usuarios.save()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Cambio de Contraseña -->
+  <div class="modal-overlay" id="modalOverlayP" onclick="Usuarios.closeModalP()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h2>Cambiar Contraseña</h2>
+      <input type="hidden" id="formIdP">
+      <div class="form-group">
+        <label for="uNewPassword">Nueva contraseña *</label>
+        <input type="password" id="uNewPassword" required>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="Usuarios.closeModalP()">Cancelar</button>
+        <button class="btn btn-primary" onclick="Usuarios.savePassword()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/api.js"></script>
   <script src="/js/productos.js"></script>
   <script src="/js/clientes.js"></script>
+  <script src="/js/users.js"></script>
   <script>
     const App = (() => {
       if (!API.getTokens()) {
@@ -145,6 +213,10 @@
 
       document.getElementById('userBadge').textContent = API.getUser();
 
+      if (API.isAdmin()) {
+        document.getElementById('navUsuarios').style.display = '';
+      }
+
       function showSection(name) {
         document.querySelectorAll('.main-content section').forEach(s => s.style.display = 'none');
         document.getElementById(`section-${name}`).style.display = 'block';
@@ -153,6 +225,7 @@
         });
         if (name === 'productos') Productos.load();
         if (name === 'clientes') Clientes.load();
+        if (name === 'usuarios') Usuarios.load();
       }
 
       function logout() {
