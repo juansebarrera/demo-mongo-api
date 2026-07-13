@@ -247,6 +247,33 @@ El endpoint de dashboard retorna el conteo total de productos, clientes y usuari
 | `totalClientes` | long | Total de clientes en la base de datos |
 | `totalUsuarios` | long | Total de usuarios registrados |
 
+## Gestión de usuarios (solo ADMIN)
+
+El panel de administración permite gestionar usuarios del sistema. Solo los usuarios con rol `ROLE_ADMIN` pueden acceder.
+
+### Endpoints
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `GET /api/usuarios` | GET | Listar todos los usuarios |
+| `GET /api/usuarios/{id}` | GET | Buscar usuario por ID |
+| `POST /api/usuarios` | POST | Crear un nuevo usuario |
+| `PUT /api/usuarios/{id}` | PUT | Actualizar usuario (username, roles, enabled) |
+| `DELETE /api/usuarios/{id}` | DELETE | Eliminar usuario |
+| `PUT /api/usuarios/{id}/password` | PUT | Cambiar contraseña (solo ADMIN) |
+| `PUT /api/usuarios/{id}/toggle-active` | PUT | Activar/desactivar usuario |
+
+### Frontend
+
+La sección **"Usuarios"** aparece en el sidebar solo para ADMIN. Permite:
+- Crear usuarios con rol Usuario o Administrador
+- Editar username y roles
+- Cambiar contraseña de cualquier usuario
+- Activar/desactivar usuarios
+- Eliminar usuarios
+
+**Nota:** después de cambiar los roles de un usuario, debe hacer logout y login para que el JWT se regenere con los nuevos permisos.
+
 ## Exportar a CSV
 
 Los endpoints de exportación permiten descargar la totalidad de registros en formato CSV.
@@ -533,7 +560,7 @@ public record AuthResponse(String accessToken, String refreshToken) {}
 ### Prioridad mediana (UX)
 
 - [x] Dashboard con estadísticas (conteo de productos, clientes, usuarios)
-- [ ] Gestión de usuarios para admin (CRUD, asignación de roles, desactivación)
+- [x] Gestión de usuarios para admin (CRUD, asignación de roles, desactivación)
 - [ ] Cambio de contraseña desde la GUI
 - [x] Exportar listas a CSV
 

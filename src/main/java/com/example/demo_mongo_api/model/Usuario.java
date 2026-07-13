@@ -22,4 +22,6 @@ public class Usuario {
     private String password; // se guarda encriptada con BCrypt, nunca en texto plano
 
     private List<String> roles; // ej: ["ROLE_USER", "ROLE_ADMIN"]
+
+    private boolean enabled = true;
 }
