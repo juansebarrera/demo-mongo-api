@@ -154,11 +154,19 @@ const Clientes = (() => {
     document.getElementById('modalOverlayC').classList.remove('active');
   }
 
+  async function exportCsv() {
+    try {
+      await API.download('/clientes/export', 'clientes.csv');
+    } catch (err) {
+      alert('Error al exportar: ' + err.message);
+    }
+  }
+
   function esc(s) {
     const d = document.createElement('div');
     d.textContent = s;
     return d.innerHTML;
   }
 
-  return { load, search, openCreate, edit, save, remove, closeModal };
+  return { load, search, openCreate, edit, save, remove, closeModal, exportCsv };
 })();

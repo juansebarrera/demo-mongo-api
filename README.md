@@ -247,6 +247,28 @@ El endpoint de dashboard retorna el conteo total de productos, clientes y usuari
 | `totalClientes` | long | Total de clientes en la base de datos |
 | `totalUsuarios` | long | Total de usuarios registrados |
 
+## Exportar a CSV
+
+Los endpoints de exportación permiten descargar la totalidad de registros en formato CSV.
+
+### Endpoints
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `GET /api/productos/export` | GET | Exporta todos los productos a `productos.csv` |
+| `GET /api/clientes/export` | GET | Exporta todos los clientes a `clientes.csv` |
+
+### Respuesta
+
+Archivo CSV con `Content-Disposition: attachment`. Ejemplo para productos:
+
+```csv
+id,nombre,descripcion,precio,stock
+665a...,Teclado mecánico,Switches azules,89.90,50
+```
+
+Los campos que contengan comas, comillas o saltos de línea se encierran entre comillas dobles automáticamente.
+
 ## ⚠️ Detalle importante de Spring Boot 4.x
 
 Spring Boot 4.x renombró varias propiedades relacionadas con Mongo:
@@ -513,7 +535,7 @@ public record AuthResponse(String accessToken, String refreshToken) {}
 - [x] Dashboard con estadísticas (conteo de productos, clientes, usuarios)
 - [ ] Gestión de usuarios para admin (CRUD, asignación de roles, desactivación)
 - [ ] Cambio de contraseña desde la GUI
-- [ ] Exportar listas a CSV
+- [x] Exportar listas a CSV
 
 ### Prioridad baja (calidad de vida)
 

@@ -156,11 +156,19 @@ const Productos = (() => {
     document.getElementById('modalOverlay').classList.remove('active');
   }
 
+  async function exportCsv() {
+    try {
+      await API.download('/productos/export', 'productos.csv');
+    } catch (err) {
+      alert('Error al exportar: ' + err.message);
+    }
+  }
+
   function esc(s) {
     const d = document.createElement('div');
     d.textContent = s;
     return d.innerHTML;
   }
 
-  return { load, search, openCreate, edit, save, remove, closeModal };
+  return { load, search, openCreate, edit, save, remove, closeModal, exportCsv };
 })();
