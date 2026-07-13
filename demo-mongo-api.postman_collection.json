@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Demo Mongo API - JWT",
-    "description": "Colección para probar autenticación JWT y los CRUD de Clientes y Productos.",
+    "description": "Colección para probar autenticación JWT y los CRUD de Clientes, Productos, Usuarios y Perfiles de Riesgo.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -32,6 +32,11 @@
     },
     {
       "key": "usuarioId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "perfilRiesgoId",
       "value": "",
       "type": "string"
     }
@@ -227,7 +232,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Juan Pérez\",\n  \"email\": \"juan.perez@example.com\",\n  \"telefono\": \"+34 600 123 456\",\n  \"direccion\": \"Calle Falsa 123, Ciudad, País\"\n}"
+              "raw": "{\n  \"nombre\": \"Juan Pérez\",\n  \"email\": \"juan.perez@example.com\",\n  \"telefono\": \"+34 600 123 456\",\n  \"direccion\": \"Calle Falsa 123, Ciudad, País\",\n  \"perfilRiesgoId\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/clientes",
@@ -263,7 +268,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Juan Pérez Actualizado\",\n  \"email\": \"juan.nuevo@example.com\",\n  \"telefono\": \"+34 600 999 888\",\n  \"direccion\": \"Avenida Siempre Viva 742\"\n}"
+              "raw": "{\n  \"nombre\": \"Juan Pérez Actualizado\",\n  \"email\": \"juan.nuevo@example.com\",\n  \"telefono\": \"+34 600 999 888\",\n  \"direccion\": \"Avenida Siempre Viva 742\",\n  \"perfilRiesgoId\": null\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/clientes/{{clienteId}}",
@@ -292,7 +297,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "[\n  {\n    \"nombre\": \"Juan Pérez\",\n    \"email\": \"juan.perez@test.com\",\n    \"telefono\": \"+57 300 123 4567\",\n    \"direccion\": \"Calle 10 #5-20, Bogotá\"\n  },\n  {\n    \"nombre\": \"María García\",\n    \"email\": \"maria.garcia@test.com\",\n    \"telefono\": \"+57 310 987 6543\",\n    \"direccion\": \"Carrera 7 #45-12, Medellín\"\n  },\n  {\n    \"nombre\": \"Carlos López\",\n    \"email\": \"carlos.lopez@test.com\",\n    \"telefono\": \"+57 320 555 1234\",\n    \"direccion\": \"Av. 15 #30-40, Cali\"\n  },\n  {\n    \"nombre\": \"Ana Martínez\",\n    \"email\": \"ana.martinez@test.com\",\n    \"telefono\": \"+57 315 678 9012\",\n    \"direccion\": \"Calle 80 #12-34, Barranquilla\"\n  },\n  {\n    \"nombre\": \"Pedro Sánchez\",\n    \"email\": \"pedro.sanchez@test.com\",\n    \"telefono\": \"+57 301 234 5678\",\n    \"direccion\": \"Carrera 50 #20-15, Bucaramanga\"\n  },\n  {\n    \"nombre\": \"Laura Rodríguez\",\n    \"email\": \"laura.rodriguez@test.com\",\n    \"telefono\": \"+57 318 345 6789\",\n    \"direccion\": \"Calle 45 #67-89, Cartagena\"\n  },\n  {\n    \"nombre\": \"Diego Fernández\",\n    \"email\": \"diego.fernandez@test.com\",\n    \"telefono\": \"+57 302 456 7890\",\n    \"direccion\": \"Av. 7 #10-20, Pereira\"\n  },\n  {\n    \"nombre\": \"Camila Torres\",\n    \"email\": \"camila.torres@test.com\",\n    \"telefono\": \"+57 316 567 8901\",\n    \"direccion\": \"Carrera 15 #33-44, Santa Marta\"\n  },\n  {\n    \"nombre\": \"Andrés Ramírez\",\n    \"email\": \"andres.ramirez@test.com\",\n    \"telefono\": \"+57 321 678 9012\",\n    \"direccion\": \"Calle 22 #50-60, Manizales\"\n  },\n  {\n    \"nombre\": \"Valentina Gómez\",\n    \"email\": \"valentina.gomez@test.com\",\n    \"telefono\": \"+57 305 789 0123\",\n    \"direccion\": \"Carrera 30 #18-25, Cúcuta\"\n  }\n]"
+              "raw": "[\n  {\n    \"nombre\": \"Juan Pérez\",\n    \"email\": \"juan.perez@test.com\",\n    \"telefono\": \"+57 300 123 4567\",\n    \"direccion\": \"Calle 10 #5-20, Bogotá\",\n    \"perfilRiesgoId\": null\n  },\n  {\n    \"nombre\": \"María García\",\n    \"email\": \"maria.garcia@test.com\",\n    \"telefono\": \"+57 310 987 6543\",\n    \"direccion\": \"Carrera 7 #45-12, Medellín\",\n    \"perfilRiesgoId\": null\n  },\n  {\n    \"nombre\": \"Carlos López\",\n    \"email\": \"carlos.lopez@test.com\",\n    \"telefono\": \"+57 320 555 1234\",\n    \"direccion\": \"Av. 15 #30-40, Cali\",\n    \"perfilRiesgoId\": null\n  },\n  {\n    \"nombre\": \"Ana Martínez\",\n    \"email\": \"ana.martinez@test.com\",\n    \"telefono\": \"+57 315 678 9012\",\n    \"direccion\": \"Calle 80 #12-34, Barranquilla\",\n    \"perfilRiesgoId\": null\n  },\n  {\n    \"nombre\": \"Pedro Sánchez\",\n    \"email\": \"pedro.sanchez@test.com\",\n    \"telefono\": \"+57 301 234 5678\",\n    \"direccion\": \"Carrera 50 #20-15, Bucaramanga\",\n    \"perfilRiesgoId\": null\n  },\n  {\n    \"nombre\": \"Laura Rodríguez\",\n    \"email\": \"laura.rodriguez@test.com\",\n    \"telefono\": \"+57 318 345 6789\",\n    \"direccion\": \"Calle 45 #67-89, Cartagena\",\n    \"perfilRiesgoId\": null\n  },\n  {\n    \"nombre\": \"Diego Fernández\",\n    \"email\": \"diego.fernandez@test.com\",\n    \"telefono\": \"+57 302 456 7890\",\n    \"direccion\": \"Av. 7 #10-20, Pereira\",\n    \"perfilRiesgoId\": null\n  },\n  {\n    \"nombre\": \"Camila Torres\",\n    \"email\": \"camila.torres@test.com\",\n    \"telefono\": \"+57 316 567 8901\",\n    \"direccion\": \"Carrera 15 #33-44, Santa Marta\",\n    \"perfilRiesgoId\": null\n  },\n  {\n    \"nombre\": \"Andrés Ramírez\",\n    \"email\": \"andres.ramirez@test.com\",\n    \"telefono\": \"+57 321 678 9012\",\n    \"direccion\": \"Calle 22 #50-60, Manizales\",\n    \"perfilRiesgoId\": null\n  },\n  {\n    \"nombre\": \"Valentina Gómez\",\n    \"email\": \"valentina.gomez@test.com\",\n    \"telefono\": \"+57 305 789 0123\",\n    \"direccion\": \"Carrera 30 #18-25, Cúcuta\",\n    \"perfilRiesgoId\": null\n  }\n]"
             },
             "url": {
               "raw": "{{baseUrl}}/api/clientes/cargar",
@@ -613,6 +618,137 @@
               "raw": "{{baseUrl}}/api/usuarios/{{usuarioId}}",
               "host": ["{{baseUrl}}"],
               "path": ["api", "usuarios", "{{usuarioId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Perfiles de Riesgo",
+      "item": [
+        {
+          "name": "Listar todos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/perfil-riesgo",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "perfil-riesgo"]
+            }
+          }
+        },
+        {
+          "name": "Listar activos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/perfil-riesgo/activos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "perfil-riesgo", "activos"]
+            }
+          }
+        },
+        {
+          "name": "Buscar por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/perfil-riesgo/{{perfilRiesgoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "perfil-riesgo", "{{perfilRiesgoId}}"]
+            }
+          }
+        },
+        {
+          "name": "Crear perfil de riesgo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.id) {",
+                  "        pm.collectionVariables.set('perfilRiesgoId', jsonData.id);",
+                  "        console.log('perfilRiesgoId guardado: ' + jsonData.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"MODERADO_TEST\",\n  \"descripcion\": \"Perfil de prueba creado desde Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/perfil-riesgo",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "perfil-riesgo"]
+            }
+          }
+        },
+        {
+          "name": "Crear perfil (datos inválidos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"\",\n  \"descripcion\": \"Sin nombre\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/perfil-riesgo",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "perfil-riesgo"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar perfil de riesgo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"MODERADO_TEST\",\n  \"descripcion\": \"Perfil actualizado desde Postman\",\n  \"activo\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/perfil-riesgo/{{perfilRiesgoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "perfil-riesgo", "{{perfilRiesgoId}}"]
+            }
+          }
+        },
+        {
+          "name": "Activar/Desactivar perfil",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/perfil-riesgo/{{perfilRiesgoId}}/toggle-active",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "perfil-riesgo", "{{perfilRiesgoId}}", "toggle-active"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar perfil de riesgo",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/perfil-riesgo/{{perfilRiesgoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "perfil-riesgo", "{{perfilRiesgoId}}"]
             }
           }
         }

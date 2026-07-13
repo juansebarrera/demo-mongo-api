@@ -15,6 +15,7 @@
         <a href="#" class="active" data-section="productos" onclick="App.showSection('productos')">Productos</a>
         <a href="#" data-section="clientes" onclick="App.showSection('clientes')">Clientes</a>
         <a href="#" data-section="usuarios" id="navUsuarios" style="display:none" onclick="App.showSection('usuarios')">Usuarios</a>
+        <a href="#" data-section="perfiles" id="navPerfiles" style="display:none" onclick="App.showSection('perfiles')">Perfiles Riesgo</a>
       </nav>
       <div class="logout">
         <a href="#" onclick="App.logout()">Cerrar sesion</a>
@@ -71,6 +72,7 @@
                 <th>Email</th>
                 <th>Telefono</th>
                 <th>Direccion</th>
+                <th>Perfil Riesgo</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -99,6 +101,29 @@
               </tr>
             </thead>
             <tbody id="usuariosTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Perfiles de Riesgo -->
+      <section id="section-perfiles" style="display:none">
+        <div class="page-header">
+          <h1>Perfiles de Riesgo</h1>
+          <div class="header-actions">
+            <button class="btn btn-primary" onclick="Perfiles.openCreate()">+ Nuevo</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Descripcion</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="perfilesTable"></tbody>
           </table>
         </div>
       </section>
@@ -154,6 +179,12 @@
         <label for="cDireccion">Direccion</label>
         <input type="text" id="cDireccion">
       </div>
+      <div class="form-group">
+        <label for="cPerfilRiesgo">Perfil de Riesgo</label>
+        <select id="cPerfilRiesgo" class="form-select">
+          <option value="">Sin perfil</option>
+        </select>
+      </div>
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="Clientes.closeModal()">Cancelar</button>
         <button class="btn btn-primary" onclick="Clientes.save()">Guardar</button>
@@ -204,10 +235,31 @@
     </div>
   </div>
 
+  <!-- Modal Perfiles de Riesgo -->
+  <div class="modal-overlay" id="modalOverlayPR" onclick="Perfiles.closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h2 id="modalTitlePR">Nuevo Perfil de Riesgo</h2>
+      <input type="hidden" id="formIdPR">
+      <div class="form-group">
+        <label for="prNombre">Nombre *</label>
+        <input type="text" id="prNombre" required>
+      </div>
+      <div class="form-group">
+        <label for="prDescripcion">Descripcion</label>
+        <input type="text" id="prDescripcion">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="Perfiles.closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="Perfiles.save()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/api.js"></script>
   <script src="/js/productos.js"></script>
   <script src="/js/clientes.js"></script>
   <script src="/js/users.js"></script>
+  <script src="/js/perfiles.js"></script>
   <script>
     const App = (() => {
       if (!API.getTokens()) {
@@ -219,6 +271,7 @@
 
       if (API.isAdmin()) {
         document.getElementById('navUsuarios').style.display = '';
+        document.getElementById('navPerfiles').style.display = '';
       }
 
       // Theme
@@ -244,6 +297,7 @@
         if (name === 'productos') Productos.load();
         if (name === 'clientes') Clientes.load();
         if (name === 'usuarios') Usuarios.load();
+        if (name === 'perfiles') Perfiles.load();
       }
 
       function logout() {

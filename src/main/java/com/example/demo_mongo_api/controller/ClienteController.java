@@ -82,15 +82,21 @@ public class ClienteController {
         response.setContentType("text/csv; charset=UTF-8");
         response.setHeader("Content-Disposition", "attachment; filename=clientes.csv");
         List<Cliente> clientes = clienteService.listarTodos();
+
         PrintWriter writer = response.getWriter();
-        writer.println("id,nombre,email,telefono,direccion");
+        writer.println("id,nombre,email,telefono,direccion,perfilRiesgo,fechaAsignacion");
         for (Cliente c : clientes) {
+            String perfilNombre = c.getPerfilRiesgo() != null ? c.getPerfilRiesgo().getPerfilDescripcion() : "";
+            String fecha = c.getPerfilRiesgo() != null && c.getPerfilRiesgo().getFechaAsignacion() != null
+                    ? c.getPerfilRiesgo().getFechaAsignacion().toString() : "";
             writer.println(String.join(",",
                     csvField(c.getId()),
                     csvField(c.getNombre()),
                     csvField(c.getEmail()),
                     csvField(c.getTelefono()),
-                    csvField(c.getDireccion())
+                    csvField(c.getDireccion()),
+                    csvField(perfilNombre),
+                    csvField(fecha)
             ));
         }
         writer.flush();

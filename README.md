@@ -71,7 +71,7 @@ API REST con Spring Boot + MongoDB + seguridad JWT (login, registro y refresh to
 
    - Swagger UI: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
      Usa el botón **Authorize** con un token JWT obtenido desde `/api/auth/login` o `/api/auth/registro`.
-   - Colección de Postman: `demo-mongo-api.postman_collection.json` (carpetas Auth, Clientes, Productos), apuntando a `http://localhost:8080`.
+   - Colección de Postman: `demo-mongo-api.postman_collection.json` (carpetas Auth, Clientes, Productos, Dashboard, Usuarios, Perfiles de Riesgo), apuntando a `http://localhost:8080`.
 
 ## Comandos útiles
 
@@ -274,6 +274,107 @@ La sección **"Usuarios"** aparece en el sidebar solo para ADMIN. Permite:
 
 **Nota:** después de cambiar los roles de un usuario, debe hacer logout y login para que el JWT se regenere con los nuevos permisos.
 
+## Perfiles de Riesgo (parámetricos)
+
+Los perfiles de riesgo son una colección paramétrica en MongoDB que permite definir y administrar categorías de riesgo asignables a los clientes. Los perfiles se crean automáticamente al iniciar la aplicación (seeder) y pueden gestionarse desde el panel de administración.
+
+### Perfiles por defecto
+
+Al iniciar la aplicación, el `PerfilRiesgoSeeder` crea automáticamente los siguientes registros en la colección `perfil_riesgo`:
+
+| Nombre | Descripción |
+|--------|-------------|
+| `SIN_PERFIL` | Sin perfil de riesgo asignado |
+| `CONSERVADOR` | Perfil conservador, prioriza la preservación del capital |
+| `MODERADO` | Perfil moderado, equilibrio entre riesgo y rentabilidad |
+| `ARRIESGADO` | Perfil agresivo, busca máxima rentabilidad asumiendo mayor riesgo |
+
+### Modelo
+
+```json
+{
+  "id": "665a...",
+  "nombre": "CONSERVADOR",
+  "descripcion": "Perfil conservador, prioriza la preservación del capital",
+  "activo": true
+}
+```
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | String | ID de MongoDB (generado automáticamente) |
+| `nombre` | String | Nombre del perfil (obligatorio, único) |
+| `descripcion` | String | Descripción del perfil (opcional) |
+| `activo` | boolean | Si está activo es visible para asignar a clientes |
+
+### Endpoints
+
+| Endpoint | Método | Acceso | Descripción |
+|----------|--------|--------|-------------|
+| `GET /api/perfil-riesgo` | GET | ADMIN | Listar todos los perfiles |
+| `GET /api/perfil-riesgo/activos` | GET | Cualquier usuario | Listar perfiles activos |
+| `GET /api/perfil-riesgo/{id}` | GET | ADMIN | Buscar perfil por ID |
+| `POST /api/perfil-riesgo` | POST | ADMIN | Crear nuevo perfil |
+| `PUT /api/perfil-riesgo/{id}` | PUT | ADMIN | Actualizar perfil |
+| `DELETE /api/perfil-riesgo/{id}` | DELETE | ADMIN | Eliminar perfil |
+| `PUT /api/perfil-riesgo/{id}/toggle-active` | PUT | ADMIN | Activar/desactivar perfil |
+
+### Relación con Clientes
+
+Cada cliente contiene un subdocumento embebido `perfilRiesgo` con un snapshot del perfil asignado al momento de la asignación. El API acepta `perfilRiesgoId` como campo de input y el backend resuelve el catálogo para construir el subdocumento.
+
+**Request (input):**
+
+```json
+{
+  "nombre": "Juan Pérez",
+  "email": "juan@example.com",
+  "perfilRiesgoId": "665a..."
+}
+```
+
+**Documento en MongoDB (respuesta):**
+
+```json
+{
+  "_id": ObjectId("6a55053d..."),
+  "nombre": "Juan Pérez",
+  "email": "juan.perez@test.com",
+  "telefono": "+57 300 123 4567",
+  "direccion": "Calle 10 #5-20, Bogotá",
+  "perfilRiesgo": {
+    "PerfilRiesgoID": "6a552c29...",
+    "PerfilDescripcion": "CONSERVADOR",
+    "fechaAsignacion": ISODate("2026-07-13T18:47:48.978Z")
+  },
+  "_class": "com.example.demo_mongo_api.model.Cliente"
+}
+```
+
+| Campo del subdoc | Tipo | Descripción |
+|------------------|------|-------------|
+| `PerfilRiesgoID` | String | ID del perfil en el catálogo |
+| `PerfilDescripcion` | String | Nombre del perfil al momento de asignación |
+| `fechaAsignacion` | DateTime | Fecha y hora de la asignación (auto-generada) |
+
+Al asignar o cambiar el perfil, `fechaAsignacion` se actualiza automáticamente. Si se desasigna el perfil (`perfilRiesgoId: null`), el subdocument `perfilRiesgo` se limpia a `null`. El campo `perfilRiesgoId` en el request es de solo escritura — no aparece en la respuesta.
+
+### Frontend
+
+La sección **"Perfiles Riesgo"** aparece en el sidebar solo para ADMIN. Permite:
+- Crear nuevos perfiles de riesgo
+- Editar nombre y descripción
+- Activar/desactivar perfiles (sin eliminar)
+- Eliminar perfiles
+
+Al crear o editar un cliente, el select de "Perfil de Riesgo" se carga dinámicamente desde `GET /api/perfil-riesgo/activos`, mostrando solo los perfiles activos.
+
+### Validación
+
+```properties
+perfilRiesgo.nombre.notblank=El nombre del perfil de riesgo es obligatorio
+```
+
 ## Exportar a CSV
 
 Los endpoints de exportación permiten descargar la totalidad de registros en formato CSV.
@@ -287,11 +388,18 @@ Los endpoints de exportación permiten descargar la totalidad de registros en fo
 
 ### Respuesta
 
-Archivo CSV con `Content-Disposition: attachment`. Ejemplo para productos:
+Archivos CSV con `Content-Disposition: attachment`. Ejemplo para productos:
 
 ```csv
 id,nombre,descripcion,precio,stock
 665a...,Teclado mecánico,Switches azules,89.90,50
+```
+
+Ejemplo para clientes (incluye nombre del perfil y fecha de asignación):
+
+```csv
+id,nombre,email,telefono,direccion,perfilRiesgo,fechaAsignacion
+665a...,Juan Pérez,juan@example.com,+34 600 123 456,Calle Falsa 123,CONSERVADOR,2026-07-13T18:47:48.978
 ```
 
 Los campos que contengan comas, comillas o saltos de línea se encierran entre comillas dobles automáticamente.
@@ -335,6 +443,9 @@ producto.stock.min=El stock del producto no puede ser negativo
 cliente.nombre.notblank=El nombre del cliente es obligatorio
 cliente.email.notblank=El correo electrónico es obligatorio
 cliente.email.email=El correo electrónico no tiene un formato válido
+
+# Perfil de Riesgo
+perfilRiesgo.nombre.notblank=El nombre del perfil de riesgo es obligatorio
 ```
 
 ### Uso en anotaciones
@@ -496,21 +607,25 @@ src/main/resources/static/
     ├── api.js          # Cliente HTTP con manejo de JWT (localStorage)
     ├── auth.js         # Lógica de login y registro
     ├── productos.js    # CRUD de productos con modales
-    └── clientes.js     # CRUD de clientes con modales
+    ├── clientes.js     # CRUD de clientes con modales (incluye select de perfil de riesgo)
+    ├── users.js        # Gestión de usuarios (admin)
+    └── perfiles.js     # Gestión de perfiles de riesgo (admin)
 ```
 
 ### Flujo
 
 1. El usuario accede a `/index.html` y se loguea o registra.
 2. `auth.js` llama a `POST /api/auth/login` y guarda el `accessToken` y `refreshToken` en `localStorage`.
-3. Se redirige a `/app.html`, que carga `api.js` → `productos.js` → `clientes.js`.
+3. Se redirige a `/app.html`, que carga `api.js` → `productos.js` → `clientes.js` → `users.js` → `perfiles.js`.
 4. Cada request desde `api.js` envía `Authorization: Bearer <token>` automáticamente.
+5. Si el usuario es ADMIN, aparecen las secciones "Usuarios" y "Perfiles Riesgo" en el sidebar.
 
 ### Seguridad (backend)
 
 - `SecurityConfig` permite acceso libre a estáticos (`/`, `/index.html`, `/app.html`, `/css/**`, `/js/**`, `/favicon.ico`), a `/api/auth/**` y a Swagger.
 - Cualquier otro endpoint requiere autenticación.
 - `DELETE` en `/api/productos/{id}` y `/api/clientes/{id}` requiere rol `ADMIN` (`@PreAuthorize("hasRole('ADMIN')")`).
+- El CRUD de `/api/perfil-riesgo/**` requiere rol `ADMIN`, excepto `/api/perfil-riesgo/activos` que es accesible para cualquier usuario autenticado (para poblar el select al crear/editar clientes).
 - Errores 401 y 403 se responden en JSON desde un `AuthenticationEntryPoint` y `AccessDeniedHandler` custom.
 
 ### Bug resuelto: 401 después de login
