@@ -54,7 +54,7 @@ const Perfiles = (() => {
     const descripcion = document.getElementById('prDescripcion').value.trim();
 
     if (!nombre) {
-      alert('El nombre es obligatorio');
+      Toast.show('El nombre es obligatorio');
       return;
     }
 
@@ -71,7 +71,7 @@ const Perfiles = (() => {
       closeModal();
       await load();
     } catch (err) {
-      alert('Error: ' + err.message);
+      Toast.show(err.message);
     }
   }
 
@@ -81,7 +81,7 @@ const Perfiles = (() => {
       await API.del(`/perfil-riesgo/${id}`);
       await load();
     } catch (err) {
-      alert('Error: ' + err.message);
+      Toast.show(err.message);
     }
   }
 
@@ -90,7 +90,7 @@ const Perfiles = (() => {
       await API.put(`/perfil-riesgo/${id}/toggle-active`);
       await load();
     } catch (err) {
-      alert('Error: ' + err.message);
+      Toast.show(err.message);
     }
   }
 
