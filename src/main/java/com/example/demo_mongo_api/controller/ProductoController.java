@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -63,11 +64,13 @@ public class ProductoController {
         return ResponseEntity.ok(productoService.actualizar(id, producto));
     }
 
-    @Operation(summary = "Eliminar un producto por su id")
+    @Operation(summary = "Eliminar un producto por su id (solo administradores)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Producto eliminado"),
-            @ApiResponse(responseCode = "404", description = "Producto no encontrado")
+            @ApiResponse(responseCode = "404", description = "Producto no encontrado"),
+            @ApiResponse(responseCode = "403", description = "No autorizado (requiere rol ADMIN)")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable String id) {
         productoService.eliminar(id);
