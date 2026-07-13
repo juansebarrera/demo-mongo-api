@@ -27,6 +27,7 @@
           <h1>Productos</h1>
           <div class="header-actions">
             <input type="text" class="search-input" id="searchProductos" placeholder="Buscar por nombre..." oninput="Productos.search(this.value)">
+            <button class="btn btn-ghost btn-sm" onclick="Productos.exportCsv()">Exportar CSV</button>
             <button class="btn btn-primary" onclick="Productos.openCreate()">+ Nuevo</button>
           </div>
         </div>
@@ -53,6 +54,7 @@
           <h1>Clientes</h1>
           <div class="header-actions">
             <input type="text" class="search-input" id="searchClientes" placeholder="Buscar por nombre o email..." oninput="Clientes.search(this.value)">
+            <button class="btn btn-ghost btn-sm" onclick="Clientes.exportCsv()">Exportar CSV</button>
             <button class="btn btn-primary" onclick="Clientes.openCreate()">+ Nuevo</button>
           </div>
         </div>

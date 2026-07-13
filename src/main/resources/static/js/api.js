@@ -101,6 +101,27 @@ const API = (() => {
     }
   }
 
+  async function download(path, filename) {
+    const { access } = getTokens();
+    const headers = {};
+    if (access) headers['Authorization'] = `Bearer ${access}`;
+
+    const res = await fetch(`${BASE}${path}`, { headers });
+    if (!res.ok) {
+      const text = await res.text();
+      let msg;
+      try { const d = JSON.parse(text); msg = d.mensaje || d.message || d.error || text; } catch { msg = text; }
+      throw new Error(msg || `Error HTTP ${res.status}`);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return {
     getTokens,
     saveTokens,
@@ -112,5 +133,6 @@ const API = (() => {
     post: (path, body) => request('POST', path, body),
     put: (path, body) => request('PUT', path, body),
     del: (path) => request('DELETE', path),
+    download,
   };
 })();

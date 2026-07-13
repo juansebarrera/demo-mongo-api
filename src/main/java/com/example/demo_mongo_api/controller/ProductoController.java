@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,10 +16,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.PrintWriter;
 import java.util.List;
 
 @RestController
@@ -89,6 +92,26 @@ public class ProductoController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Exportar todos los productos en CSV")
+    @GetMapping(value = "/export", produces = MediaType.TEXT_PLAIN_VALUE)
+    public void exportarCsv(HttpServletResponse response) throws Exception {
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename=productos.csv");
+        List<Producto> productos = productoService.listarTodos();
+        PrintWriter writer = response.getWriter();
+        writer.println("id,nombre,descripcion,precio,stock");
+        for (Producto p : productos) {
+            writer.println(String.join(",",
+                    csvField(p.getId()),
+                    csvField(p.getNombre()),
+                    csvField(p.getDescripcion()),
+                    csvField(String.valueOf(p.getPrecio())),
+                    csvField(String.valueOf(p.getStock()))
+            ));
+        }
+        writer.flush();
+    }
+
     @Operation(summary = "Carga masiva de productos en formato JSON")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Todos los registros insertados"),
@@ -101,5 +124,13 @@ public class ProductoController {
             return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(response);
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    private String csvField(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 }
