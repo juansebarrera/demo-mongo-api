@@ -18,17 +18,17 @@ public class Producto {
     private String id;
 
     @Schema(description = "Nombre del producto", example = "Teclado mecánico")
-    @NotBlank(message = "El nombre es obligatorio")
+    @NotBlank(message = "{producto.nombre.notblank}")
     private String nombre;
 
     @Schema(description = "Descripción detallada del producto", example = "Switches azules, retroiluminado")
     private String descripcion;
 
     @Schema(description = "Precio unitario en la moneda base", example = "89.90")
-    @Positive(message = "El precio debe ser mayor a 0")
+    @Positive(message = "{producto.precio.positive}")
     private Double precio;
 
     @Schema(description = "Unidades disponibles en inventario", example = "50")
-    @Min(value = 0, message = "El stock no puede ser negativo")
+    @Min(value = 0, message = "{producto.stock.min}")
     private Integer stock;
 }
