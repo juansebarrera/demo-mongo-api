@@ -219,6 +219,34 @@ Los mismos constraints del CRUD individual aplican:
 
 La validación se realiza registro por registro — un error no bloquea la inserción de los demás.
 
+## Dashboard — Estadísticas generales
+
+El endpoint de dashboard retorna el conteo total de productos, clientes y usuarios registrados.
+
+### Endpoint
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `GET /api/dashboard` | GET | Estadísticas generales (requiere autenticación) |
+
+### Respuesta
+
+```json
+{
+  "totalProductos": 15,
+  "totalClientes": 30,
+  "totalUsuarios": 3
+}
+```
+
+### Campos
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `totalProductos` | long | Total de productos en la base de datos |
+| `totalClientes` | long | Total de clientes en la base de datos |
+| `totalUsuarios` | long | Total de usuarios registrados |
+
 ## ⚠️ Detalle importante de Spring Boot 4.x
 
 Spring Boot 4.x renombró varias propiedades relacionadas con Mongo:
@@ -482,7 +510,7 @@ public record AuthResponse(String accessToken, String refreshToken) {}
 
 ### Prioridad mediana (UX)
 
-- [ ] Dashboard con estadísticas (conteo de productos, clientes, usuarios)
+- [x] Dashboard con estadísticas (conteo de productos, clientes, usuarios)
 - [ ] Gestión de usuarios para admin (CRUD, asignación de roles, desactivación)
 - [ ] Cambio de contraseña desde la GUI
 - [ ] Exportar listas a CSV
