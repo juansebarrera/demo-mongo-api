@@ -3,6 +3,8 @@ package com.example.demo_mongo_api.service;
 import com.example.demo_mongo_api.controller.dto.BulkError;
 import com.example.demo_mongo_api.controller.dto.BulkResponse;
 import com.example.demo_mongo_api.model.Cliente;
+import com.example.demo_mongo_api.model.PerfilRiesgo;
+import com.example.demo_mongo_api.model.PerfilRiesgoCliente;
 import com.example.demo_mongo_api.repository.ClienteRepository;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -11,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +23,9 @@ public class ClienteService {
 
     @Autowired
     private ClienteRepository clienteRepository;
+
+    @Autowired
+    private PerfilRiesgoService perfilRiesgoService;
 
     @Autowired
     private Validator validator;
@@ -40,11 +46,14 @@ public class ClienteService {
     }
 
     public Cliente guardar(Cliente cliente) {
+        resolvePerfilRiesgo(cliente, null);
         return clienteRepository.save(cliente);
     }
 
     public Cliente actualizar(String id, Cliente cliente) {
         cliente.setId(id);
+        Cliente existente = clienteRepository.findById(id).orElse(null);
+        resolvePerfilRiesgo(cliente, existente);
         return clienteRepository.save(cliente);
     }
 
@@ -60,6 +69,7 @@ public class ClienteService {
             Cliente cliente = clientes.get(i);
             Set<ConstraintViolation<Cliente>> violaciones = validator.validate(cliente);
             if (violaciones.isEmpty()) {
+                resolvePerfilRiesgo(cliente, null);
                 validos.add(cliente);
             } else {
                 for (ConstraintViolation<Cliente> v : violaciones) {
@@ -75,5 +85,35 @@ public class ClienteService {
         }
 
         return new BulkResponse(clientes.size(), ids.size(), errores.size(), ids, errores);
+    }
+
+    private void resolvePerfilRiesgo(Cliente cliente, Cliente anterior) {
+        String nuevoId = cliente.getPerfilRiesgoId();
+        String anteriorId = anterior != null && anterior.getPerfilRiesgo() != null
+                ? anterior.getPerfilRiesgo().getPerfilRiesgoId() : null;
+
+        boolean perfilCambiado = !equals(nuevoId, anteriorId);
+
+        if (perfilCambiado) {
+            if (nuevoId != null && !nuevoId.isBlank()) {
+                PerfilRiesgo pr = perfilRiesgoService.buscarPorId(nuevoId);
+                PerfilRiesgoCliente sub = new PerfilRiesgoCliente();
+                sub.setPerfilRiesgoId(pr.getId());
+                sub.setPerfilDescripcion(pr.getNombre());
+                sub.setFechaAsignacion(LocalDateTime.now());
+                cliente.setPerfilRiesgo(sub);
+            } else {
+                cliente.setPerfilRiesgo(null);
+            }
+        } else {
+            cliente.setPerfilRiesgo(anterior != null ? anterior.getPerfilRiesgo() : null);
+        }
+
+        cliente.setPerfilRiesgoId(null);
+    }
+
+    private boolean equals(String a, String b) {
+        if (a == null) return b == null;
+        return a.equals(b);
     }
 }

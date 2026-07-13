@@ -4,6 +4,28 @@ const Clientes = (() => {
   let currentSearch = '';
   let totalPages = 0;
   let totalElements = 0;
+  let perfilesCache = [];
+
+  async function loadPerfiles() {
+    try {
+      perfilesCache = await API.get('/perfil-riesgo/activos');
+    } catch (err) {
+      console.error('Error cargando perfiles de riesgo:', err);
+      perfilesCache = [];
+    }
+  }
+
+  function populatePerfilSelect(selectedId) {
+    const select = document.getElementById('cPerfilRiesgo');
+    select.innerHTML = '<option value="">Sin perfil</option>';
+    perfilesCache.forEach(p => {
+      const option = document.createElement('option');
+      option.value = p.id;
+      option.textContent = p.nombre;
+      if (p.id === selectedId) option.selected = true;
+      select.appendChild(option);
+    });
+  }
 
   async function load(page = 0) {
     currentPage = page;
@@ -34,15 +56,16 @@ const Clientes = (() => {
   function render(items) {
     const tbody = document.getElementById('clientesTable');
     if (!items.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay clientes registrados</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No hay clientes registrados</td></tr>';
       return;
     }
     tbody.innerHTML = items.map(c => `
-      <tr>
+      <tr data-perfil-id="${c.perfilRiesgo ? c.perfilRiesgo.perfilRiesgoId || '' : ''}">
         <td>${esc(c.nombre)}</td>
         <td>${esc(c.email || '-')}</td>
         <td>${esc(c.telefono || '-')}</td>
         <td>${esc(c.direccion || '-')}</td>
+        <td>${esc(c.perfilRiesgo ? c.perfilRiesgo.perfilDescripcion || '-' : '-')}</td>
         <td class="actions">
           <button class="btn btn-sm btn-ghost" onclick="Clientes.edit('${c.id}')">Editar</button>
           ${API.isAdmin() ? `<button class="btn btn-sm btn-danger" onclick="Clientes.remove('${c.id}')">Eliminar</button>` : ''}
@@ -75,17 +98,20 @@ const Clientes = (() => {
     container.innerHTML = html;
   }
 
-  function openCreate() {
+  async function openCreate() {
+    await loadPerfiles();
     document.getElementById('modalTitleC').textContent = 'Nuevo Cliente';
     document.getElementById('formIdC').value = '';
     document.getElementById('cNombre').value = '';
     document.getElementById('cEmail').value = '';
     document.getElementById('cTelefono').value = '';
     document.getElementById('cDireccion').value = '';
+    populatePerfilSelect('');
     document.getElementById('modalOverlayC').classList.add('active');
   }
 
-  function edit(id) {
+  async function edit(id) {
+    await loadPerfiles();
     const tbody = document.getElementById('clientesTable');
     const rows = tbody.querySelectorAll('tr');
     let item = null;
@@ -98,6 +124,7 @@ const Clientes = (() => {
           email: row.cells[1]?.textContent === '-' ? '' : row.cells[1]?.textContent,
           telefono: row.cells[2]?.textContent === '-' ? '' : row.cells[2]?.textContent,
           direccion: row.cells[3]?.textContent === '-' ? '' : row.cells[3]?.textContent,
+          perfilRiesgoId: row.dataset.perfilId || '',
         };
         break;
       }
@@ -110,16 +137,19 @@ const Clientes = (() => {
     document.getElementById('cEmail').value = item.email || '';
     document.getElementById('cTelefono').value = item.telefono || '';
     document.getElementById('cDireccion').value = item.direccion || '';
+    populatePerfilSelect(item.perfilRiesgoId);
     document.getElementById('modalOverlayC').classList.add('active');
   }
 
   async function save() {
     const id = document.getElementById('formIdC').value;
+    const perfilId = document.getElementById('cPerfilRiesgo').value;
     const body = {
       nombre: document.getElementById('cNombre').value.trim(),
       email: document.getElementById('cEmail').value.trim(),
       telefono: document.getElementById('cTelefono').value.trim(),
       direccion: document.getElementById('cDireccion').value.trim(),
+      perfilRiesgoId: perfilId || null,
     };
 
     if (!body.nombre) {
