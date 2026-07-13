@@ -193,6 +193,45 @@ Se ejecuta en cada `push` a `main` y manualmente (`workflow_dispatch`):
 
 La imagen queda disponible para que otros desarrolladores la descarguen sin necesidad de compilar.
 
+## Health Checks (Actuator)
+
+El proyecto incluye `spring-boot-starter-actuator` para monitoreo y health checks.
+
+### Endpoints disponibles
+
+| Endpoint | Descripción |
+|----------|-------------|
+| `GET /actuator/health` | Estado general de la aplicación (`UP` / `DOWN`) |
+| `GET /actuator/health/mongo` | Verificación de conexión a MongoDB |
+| `GET /actuator/info` | Información de la aplicación (versión, etc.) |
+
+### Ejemplo de respuesta
+
+```json
+{
+  "status": "UP",
+  "components": {
+    "mongo": {
+      "status": "UP",
+      "details": {
+        "database": "demo_mongo_api"
+      }
+    },
+    "diskSpace": {
+      "status": "UP"
+    }
+  }
+}
+```
+
+### Docker
+
+El `docker-compose.yml` ya incluye un healthcheck para el servicio `app` que usa `/actuator/health`. Docker no enruta tráfico al contenedor hasta que el healthcheck responda `UP`.
+
+### Seguridad
+
+Los endpoints de actuator (`/actuator/**`) están exentos de autenticación JWT para que Docker y balanceadores de carga puedan verificar el estado sin credenciales.
+
 ## Desarrollo desde otro equipo
 
 Si necesitás desarrollar en otra máquina, seguí estos pasos:
@@ -317,7 +356,7 @@ public record AuthResponse(String accessToken, String refreshToken) {}
 - [x] Paginación y filtrado en `GET /api/productos` y `/api/clientes` (parámetros `page`, `size`, `sort`)
 - [x] Búsqueda por nombre (productos) y email/nombre (clientes)
 - [ ] Validación robusta con mensajes personalizados desde `messages.properties`
-- [ ] Health checks con `spring-boot-starter-actuator`
+- [x] Health checks con `spring-boot-starter-actuator`
 
 ### Prioridad mediana (UX)
 
