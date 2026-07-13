@@ -543,7 +543,7 @@ Los endpoints de actuator (`/actuator/**`) están exentos de autenticación JWT 
 
 ## Kubernetes
 
-El proyecto incluye manifiestos Kubernetes para desplegar app + MongoDB en un cluster.
+El proyecto incluye manifiestos Kubernetes para desplegar app + MongoDB en un cluster minikube o similar.
 
 ### Estructura de manifiestos
 
@@ -560,62 +560,192 @@ k8s/
 └── ingress.yaml            # Ingress con nombre de dominio (opcional)
 ```
 
-### Prerrequisitos
+### Paso a paso: desplegar desde cero en otro equipo
 
-- `kubectl` configurado apuntando al cluster
-- Para desarrollo local: [minikube](https://minikube.sigs.k8s.io/) o [kind](https://kind.sigs.k8s.io/)
-- La imagen debe estar en GHCR (ya publicada por `docker-publish.yml`)
+#### 1. Instalar prerrequisitos
 
-### Despliegue rápido
+| Herramienta | Propósito | Enlace |
+|---|---|---|
+| Docker Desktop | Runtime de contenedores | https://www.docker.com/products/docker-desktop/ |
+| kubectl | CLI de Kubernetes | https://kubernetes.io/docs/tasks/tools/ |
+| minikube | Cluster K8s local | https://minikube.sigs.k8s.io/docs/start/ |
+
+#### 2. Clonar el repositorio
 
 ```bash
-# Linux/macOS
-./scripts/deploy-k8s.sh
-
-# Windows (PowerShell)
-.\scripts\deploy-k8s.ps1
+git clone https://github.com/juansebarrera/demo-mongo-api.git
+cd demo-mongo-api
+git checkout main
+git pull
 ```
 
-### Despliegue manual
+#### 3. Generar un JWT_SECRET seguro
+
+JJWT requiere una clave HMAC-SHA de **mínimo 32 bytes (256 bits)**. Si usas una clave más corta obtendrás `WeakKeyException`.
 
 ```bash
-# 1. Crear namespace y secretos
+# Genera un secreto de 32 bytes en base64
+openssl rand -base64 32
+```
+
+Copia el resultado (algo como `/NS2U3L7jiZEFgI1a/RixHxeehP5SuYu92DN86cnEuU=`).
+
+#### 4. Configurar los secretos
+
+Edita `k8s/secrets.yaml` y reemplaza los valores base64:
+
+```yaml
+data:
+  # JWT_SECRET: tu secreto generado en el paso anterior (base64)
+  JWT_SECRET: <tu-base64-de-32-bytes>
+  # ADMIN_SEED_PASSWORD: contraseña del admin que se crea automáticamente (base64)
+  ADMIN_SEED_PASSWORD: YWRtaW4xMjM=
+  # SPRING_MONGODB_URI: URI de conexión (base64)
+  SPRING_MONGODB_URI: bW9uZ29kYjovL2FkbWluOmFkbWlucGFzc3dvcmRAbW9uZ286MjcwMTcvZGVtb19tb25nb19hcGk/YXV0aFNvdXJjZT1hZG1pbg==
+  # Mongo root credentials (base64) - deben coincidir con SPRING_MONGODB_URI
+  MONGO_INITDB_ROOT_USERNAME: YWRtaW4=
+  MONGO_INITDB_ROOT_PASSWORD: YWRtaW5wYXNzd29yZA==
+```
+
+Para generar base64 de tus propios valores:
+
+```bash
+echo -n 'tu-clave' | base64
+# Ejemplo: echo -n 'admin' | base64 → YWRtaW4=
+```
+
+> **Importante:** Si cambias `MONGO_INITDB_ROOT_PASSWORD`, también debes cambiar la contraseña en la URI de `SPRING_MONGODB_URI`. Ambos valores deben coincidir. Si la base de datos ya tiene datos con credenciales anteriores, borra el PersistentVolumeClaim antes de re-desplegar.
+
+#### 5. Iniciar minikube (si usas cluster local)
+
+```bash
+minikube start --cpus=2 --memory=4096
+```
+
+#### 6. Desplegar la aplicación
+
+**Opción A — Script automático:**
+
+```bash
+# Windows (PowerShell)
+.\scripts\deploy-k8s.ps1
+
+# Linux/macOS
+chmod +x ./scripts/deploy-k8s.sh
+./scripts/deploy-k8s.sh
+```
+
+**Opción B — Manual (paso a paso):**
+
+```bash
+# Namespace
 kubectl apply -f k8s/namespace.yaml
+
+# Secretos y configuración
 kubectl apply -f k8s/secrets.yaml
 kubectl apply -f k8s/configmap.yaml
 
-# 2. MongoDB
+# MongoDB (StatefulSet con volumen persistente)
 kubectl apply -f k8s/mongo-service.yaml
 kubectl apply -f k8s/mongo-statefulset.yaml
 kubectl wait --for=condition=ready pod -l app=mongo -n demo-mongo-api --timeout=120s
 
-# 3. App
+# App (Deployment + Service)
 kubectl apply -f k8s/app-service.yaml
 kubectl apply -f k8s/app-deployment.yaml
-kubectl wait --for=condition=ready pod -l app=app -n demo-mongo-api --timeout=120s
+kubectl wait --for=condition=ready pod -l app=app -n demo-mongo-api --timeout=180s
 ```
 
-### Acceso a la app
+#### 7. Verificar el despliegue
+
+```bash
+# Ver pods (ambos deben estar Running con 1/1 Ready)
+kubectl get pods -n demo-mongo-api
+
+# Ver logs — busca "Started DemoMongoApiApplication" y los seeders
+kubectl logs -l app=app -n demo-mongo-api --tail=50
+
+# Health check
+kubectl exec -n demo-mongo-api deploy/app -- wget -qO- http://localhost:8080/actuator/health
+```
+
+#### 8. Acceder a la app
 
 ```bash
 # Port-forward (funciona en cualquier cluster)
 kubectl port-forward svc/app 8080:80 -n demo-mongo-api
-# Luego: http://localhost:8080
-
-# Ver IP del LoadBalancer (si el cluster lo soporta)
-kubectl get svc app -n demo-mongo-api
 ```
+
+Abrir en el navegador:
+
+| URL | Descripción |
+|---|---|
+| http://localhost:8080 | GUI (login/registro) |
+| http://localhost:8080/swagger-ui/index.html | Swagger UI |
+| http://localhost:8080/actuator/health | Health check |
+
+Credenciales por defecto:
+
+| Campo | Valor |
+|---|---|
+| Usuario | `admin` |
+| Contraseña | `admin123` |
+
+### Credenciales por defecto
+
+| Credencial | Valor | Nota |
+|---|---|---|
+| Admin user | `admin` | Creado automáticamente por `AdminSeeder` (solo perfil dev/test) |
+| Admin password | `admin123` | Definido en `ADMIN_SEED_PASSWORD` del Secret |
+| Mongo root | `admin` | `MONGO_INITDB_ROOT_USERNAME` |
+| Mongo password | `adminpassword` | `MONGO_INITDB_ROOT_PASSWORD` |
+| DB name | `demo_mongo_api` | Definido en `SPRING_MONGODB_URI` |
+
+### Troubleshooting
+
+#### `WeakKeyException: The specified key byte array is X bits`
+
+El `JWT_SECRET` es demasiado corto. JJWT HMAC-SHA256 requiere mínimo 32 bytes (256 bits).
+
+```bash
+# Generar un secreto válido
+openssl rand -base64 32
+```
+
+Reemplaza el valor en `k8s/secrets.yaml` y re-despliega.
+
+#### Pods en `CrashLoopBackOff` — MongoDB `AuthenticationFailed`
+
+El `SPRING_MONGODB_URI` no coincide con las credenciales de `MONGO_INITDB_ROOT_PASSWORD`. Si la base de datos ya tiene datos viejos, borra el PVC:
+
+```bash
+kubectl delete statefulset mongo -n demo-mongo-api
+kubectl delete pvc mongo-data-mongo-0 -n demo-mongo-api
+kubectl apply -f k8s/mongo-statefulset.yaml
+```
+
+#### La app tarda mucho en levantar y el pod se reinicia
+
+La app tarda ~60 segundos en iniciar (Spring Boot + MongoDB driver). Los `readinessProbe` y `livenessProbe` tienen `initialDelaySeconds: 70` para compensar. Si tu cluster es más lento, ajusta en `k8s/app-deployment.yaml`:
+
+```yaml
+readinessProbe:
+  initialDelaySeconds: 90  # aumentar si la app tarda más
+livenessProbe:
+  initialDelaySeconds: 90
+```
+
+#### `AdminSeeder` no crea el usuario admin
+
+Verifica que `SPRING_PROFILES_ACTIVE=dev` esté en el ConfigMap. El seeder solo corre en perfiles `dev` o `test`.
 
 ### Secretos
 
-Los valores en `k8s/secrets.yaml` son de ejemplo. **En producción**, genera los valores reales:
+Los valores en `k8s/secrets.yaml` son de ejemplo para desarrollo. **En producción:**
 
-```bash
-echo -n 'tu-jwt-secret' | base64
-echo -n 'tu-password-admin' | base64
-```
-
-Y reemplaza los valores en el archivo. Nunca commitees secretos reales al repo.
+1. Genera valores reales con `openssl rand -base64 32`
+2. Usa un `Secret` management (Vault, sealed-secrets, etc.)
+3. Nunca commitees secretos reales al repo
 
 ### Diferencias vs Docker Compose
 
@@ -627,6 +757,7 @@ Y reemplaza los valores en el archivo. Nunca commitees secretos reales al repo.
 | Health checks | `docker-compose.yml` | `readinessProbe` + `livenessProbe` |
 | Réplicas | 1 | 2 (configurable en Deployment) |
 | Exposición | `ports: 8080:8080` | Service LoadBalancer / Ingress |
+| JWT_SECRET mínimo | 32 bytes (JJWT requirement) | 32 bytes (JJWT requirement) |
 
 ### Comandos útiles
 
@@ -640,10 +771,13 @@ kubectl logs -l app=app -n demo-mongo-api -f
 # Reiniciar la app (rolling update)
 kubectl rollout restart deployment/app -n demo-mongo-api
 
+# Ver logs del seed admin (buscar "Usuario admin creado")
+kubectl logs -l app=app -n demo-mongo-api | Select-String "admin"
+
 # Verificar estado
 kubectl get all -n demo-mongo-api
 
-# Eliminar todo
+# Eliminar todo (incluye datos)
 kubectl delete namespace demo-mongo-api
 ```
 
