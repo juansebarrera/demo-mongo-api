@@ -1,5 +1,6 @@
 package com.example.demo_mongo_api.controller;
 
+import com.example.demo_mongo_api.controller.dto.BulkResponse;
 import com.example.demo_mongo_api.model.Cliente;
 import com.example.demo_mongo_api.service.ClienteService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -68,5 +71,15 @@ public class ClienteController {
     public ResponseEntity<Void> eliminar(@PathVariable String id) {
         clienteService.eliminar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Carga masiva de clientes en formato JSON")
+    @PostMapping("/cargar")
+    public ResponseEntity<BulkResponse> cargar(@RequestBody List<Cliente> clientes) {
+        BulkResponse response = clienteService.cargar(clientes);
+        if (response.fallidos() > 0) {
+            return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

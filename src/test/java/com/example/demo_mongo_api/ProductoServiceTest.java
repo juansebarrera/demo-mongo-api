@@ -1,10 +1,13 @@
 package com.example.demo_mongo_api;
 
+import com.example.demo_mongo_api.controller.dto.BulkResponse;
 import com.example.demo_mongo_api.exception.ProductoNotFoundException;
 import com.example.demo_mongo_api.model.Producto;
 import com.example.demo_mongo_api.repository.ProductoRepository;
 import com.example.demo_mongo_api.service.ProductoService;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,8 +19,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,6 +37,9 @@ class ProductoServiceTest {
 
     @Mock
     private ProductoRepository productoRepository;
+
+    @Mock
+    private Validator validator;
 
     @InjectMocks
     private ProductoService productoService;
@@ -131,5 +140,101 @@ class ProductoServiceTest {
                 .isInstanceOf(ProductoNotFoundException.class);
 
         verify(productoRepository, never()).deleteById(anyString());
+    }
+
+    @Test
+    void cargar_todosValidos_deberiaInsertarTodosYRetornarIds() {
+        Producto p1 = new Producto();
+        p1.setNombre("Mouse");
+        p1.setPrecio(25.0);
+        p1.setStock(10);
+
+        Producto p2 = new Producto();
+        p2.setNombre("Teclado");
+        p2.setPrecio(50.0);
+        p2.setStock(20);
+
+        when(validator.validate(p1)).thenReturn(Collections.emptySet());
+        when(validator.validate(p2)).thenReturn(Collections.emptySet());
+
+        Producto p1Guardado = new Producto();
+        p1Guardado.setId("id1");
+        p1Guardado.setNombre("Mouse");
+        p1Guardado.setPrecio(25.0);
+        p1Guardado.setStock(10);
+
+        Producto p2Guardado = new Producto();
+        p2Guardado.setId("id2");
+        p2Guardado.setNombre("Teclado");
+        p2Guardado.setPrecio(50.0);
+        p2Guardado.setStock(20);
+
+        when(productoRepository.insert(any(List.class))).thenReturn(List.of(p1Guardado, p2Guardado));
+
+        BulkResponse response = productoService.cargar(List.of(p1, p2));
+
+        assertThat(response.totalRecibidos()).isEqualTo(2);
+        assertThat(response.insertados()).isEqualTo(2);
+        assertThat(response.fallidos()).isEqualTo(0);
+        assertThat(response.ids()).containsExactly("id1", "id2");
+        assertThat(response.errores()).isEmpty();
+    }
+
+    @Test
+    void cargar_todosInvalidos_deberiaRetornarErroresYNoInsertar() {
+        Producto invalido = new Producto();
+        invalido.setNombre("");
+        invalido.setPrecio(-5.0);
+
+        Set<ConstraintViolation<Producto>> violaciones = new HashSet<>();
+        ConstraintViolation<Producto> v1 = mock(ConstraintViolation.class);
+        when(v1.getPropertyPath()).thenReturn(mock(jakarta.validation.Path.class));
+        when(v1.getMessage()).thenReturn("El nombre es obligatorio");
+        violaciones.add(v1);
+
+        when(validator.validate(invalido)).thenReturn(violaciones);
+
+        BulkResponse response = productoService.cargar(List.of(invalido));
+
+        assertThat(response.totalRecibidos()).isEqualTo(1);
+        assertThat(response.insertados()).isEqualTo(0);
+        assertThat(response.fallidos()).isEqualTo(1);
+        assertThat(response.ids()).isEmpty();
+        assertThat(response.errores()).hasSize(1);
+        verify(productoRepository, never()).insert(any(List.class));
+    }
+
+    @Test
+    void cargar_mixValidosEInvalidos_deberiaInsertarSoloLosValidos() {
+        Producto valido = new Producto();
+        valido.setNombre("Mouse");
+        valido.setPrecio(25.0);
+        valido.setStock(10);
+
+        Producto invalido = new Producto();
+        invalido.setNombre("");
+        invalido.setPrecio(-5.0);
+
+        when(validator.validate(valido)).thenReturn(Collections.emptySet());
+
+        Set<ConstraintViolation<Producto>> violaciones = new HashSet<>();
+        ConstraintViolation<Producto> v1 = mock(ConstraintViolation.class);
+        when(v1.getPropertyPath()).thenReturn(mock(jakarta.validation.Path.class));
+        when(v1.getMessage()).thenReturn("El nombre es obligatorio");
+        violaciones.add(v1);
+        when(validator.validate(invalido)).thenReturn(violaciones);
+
+        Producto validoGuardado = new Producto();
+        validoGuardado.setId("id1");
+        validoGuardado.setNombre("Mouse");
+        when(productoRepository.insert(any(List.class))).thenReturn(List.of(validoGuardado));
+
+        BulkResponse response = productoService.cargar(List.of(valido, invalido));
+
+        assertThat(response.totalRecibidos()).isEqualTo(2);
+        assertThat(response.insertados()).isEqualTo(1);
+        assertThat(response.fallidos()).isEqualTo(1);
+        assertThat(response.ids()).containsExactly("id1");
+        assertThat(response.errores()).hasSize(1);
     }
 }

@@ -147,6 +147,78 @@ GET /api/clientes?search=juan
 }
 ```
 
+## Carga masiva de datos
+
+Los endpoints de carga masiva permiten insertar múltiples registros en una sola petición JSON. Los registros válidos se insertan y los inválidos se reportan con sus errores.
+
+### Endpoints
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `POST /api/productos/cargar` | POST | Carga masiva de productos |
+| `POST /api/clientes/cargar` | POST | Carga masiva de clientes |
+
+### Request
+
+Envía un array JSON con los registros a insertar:
+
+```json
+POST /api/productos/cargar
+Content-Type: application/json
+
+[
+  { "nombre": "Teclado", "precio": 89.90, "stock": 50 },
+  { "nombre": "Mouse", "precio": 25.50, "stock": 100 },
+  { "nombre": "", "precio": -10, "stock": -5 }
+]
+```
+
+### Respuesta — todos válidos (201)
+
+```json
+{
+  "totalRecibidos": 2,
+  "insertados": 2,
+  "fallidos": 0,
+  "ids": ["665a...", "665b..."],
+  "errores": []
+}
+```
+
+### Respuesta — mix válidos e inválidos (207 Multi-Status)
+
+```json
+{
+  "totalRecibidos": 3,
+  "insertados": 2,
+  "fallidos": 1,
+  "ids": ["665a...", "665b..."],
+  "errores": [
+    { "index": 2, "campo": "nombre", "mensaje": "El nombre es obligatorio" }
+  ]
+}
+```
+
+### Campos de la respuesta
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `totalRecibidos` | int | Total de registros recibidos en el request |
+| `insertados` | int | Registros insertados exitosamente |
+| `fallidos` | int | Registros con errores de validación |
+| `ids` | List\<String\> | IDs de MongoDB generados para los registros insertados |
+| `errores` | List\<BulkError\> | Detalle de errores por registro |
+
+### Validaciones
+
+Los mismos constraints del CRUD individual aplican:
+
+**Productos:** `nombre` (obligatorio), `precio` (> 0), `stock` (>= 0)
+
+**Clientes:** `nombre` (obligatorio), `email` (formato válido)
+
+La validación se realiza registro por registro — un error no bloquea la inserción de los demás.
+
 ## ⚠️ Detalle importante de Spring Boot 4.x
 
 Spring Boot 4.x renombró varias propiedades relacionadas con Mongo:
@@ -404,10 +476,9 @@ public record AuthResponse(String accessToken, String refreshToken) {}
 
 - [x] Paginación y filtrado en `GET /api/productos` y `/api/clientes` (parámetros `page`, `size`, `sort`)
 - [x] Búsqueda por nombre (productos) y email/nombre (clientes)
-- [ ] Validación robusta con mensajes personalizados desde `messages.properties`
-- [x] Health checks con `spring-boot-starter-actuator`
 - [x] Validación robusta con mensajes personalizados desde `messages.properties`
-- [ ] Health checks con `spring-boot-starter-actuator`
+- [x] Health checks con `spring-boot-starter-actuator`
+- [x] Carga masiva de productos y clientes (`POST /api/productos/cargar`, `/api/clientes/cargar`)
 
 ### Prioridad mediana (UX)
 

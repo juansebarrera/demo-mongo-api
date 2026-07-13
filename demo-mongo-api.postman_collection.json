@@ -277,6 +277,24 @@
               "path": ["api", "clientes", "{{clienteId}}"]
             }
           }
+        },
+        {
+          "name": "Carga masiva de clientes",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"nombre\": \"Juan Pérez\",\n    \"email\": \"juan.perez@test.com\",\n    \"telefono\": \"+57 300 123 4567\",\n    \"direccion\": \"Calle 10 #5-20, Bogotá\"\n  },\n  {\n    \"nombre\": \"María García\",\n    \"email\": \"maria.garcia@test.com\",\n    \"telefono\": \"+57 310 987 6543\",\n    \"direccion\": \"Carrera 7 #45-12, Medellín\"\n  },\n  {\n    \"nombre\": \"Carlos López\",\n    \"email\": \"carlos.lopez@test.com\",\n    \"telefono\": \"+57 320 555 1234\",\n    \"direccion\": \"Av. 15 #30-40, Cali\"\n  },\n  {\n    \"nombre\": \"Ana Martínez\",\n    \"email\": \"ana.martinez@test.com\",\n    \"telefono\": \"+57 315 678 9012\",\n    \"direccion\": \"Calle 80 #12-34, Barranquilla\"\n  },\n  {\n    \"nombre\": \"Pedro Sánchez\",\n    \"email\": \"pedro.sanchez@test.com\",\n    \"telefono\": \"+57 301 234 5678\",\n    \"direccion\": \"Carrera 50 #20-15, Bucaramanga\"\n  },\n  {\n    \"nombre\": \"Laura Rodríguez\",\n    \"email\": \"laura.rodriguez@test.com\",\n    \"telefono\": \"+57 318 345 6789\",\n    \"direccion\": \"Calle 45 #67-89, Cartagena\"\n  },\n  {\n    \"nombre\": \"Diego Fernández\",\n    \"email\": \"diego.fernandez@test.com\",\n    \"telefono\": \"+57 302 456 7890\",\n    \"direccion\": \"Av. 7 #10-20, Pereira\"\n  },\n  {\n    \"nombre\": \"Camila Torres\",\n    \"email\": \"camila.torres@test.com\",\n    \"telefono\": \"+57 316 567 8901\",\n    \"direccion\": \"Carrera 15 #33-44, Santa Marta\"\n  },\n  {\n    \"nombre\": \"Andrés Ramírez\",\n    \"email\": \"andres.ramirez@test.com\",\n    \"telefono\": \"+57 321 678 9012\",\n    \"direccion\": \"Calle 22 #50-60, Manizales\"\n  },\n  {\n    \"nombre\": \"Valentina Gómez\",\n    \"email\": \"valentina.gomez@test.com\",\n    \"telefono\": \"+57 305 789 0123\",\n    \"direccion\": \"Carrera 30 #18-25, Cúcuta\"\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/cargar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes", "cargar"]
+            }
+          }
         }
       ]
     },
@@ -384,6 +402,24 @@
               "raw": "{{baseUrl}}/api/productos/{{productoId}}",
               "host": ["{{baseUrl}}"],
               "path": ["api", "productos", "{{productoId}}"]
+            }
+          }
+        },
+        {
+          "name": "Carga masiva de productos",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"nombre\": \"Teclado mecánico\",\n    \"descripcion\": \"Switches azules, retroiluminado RGB\",\n    \"precio\": 89.90,\n    \"stock\": 50\n  },\n  {\n    \"nombre\": \"Mouse inalámbrico\",\n    \"descripcion\": \"Ergonómico, 16000 DPI\",\n    \"precio\": 25.50,\n    \"stock\": 120\n  },\n  {\n    \"nombre\": \"Monitor 27 pulgadas\",\n    \"descripcion\": \"4K IPS, 144Hz\",\n    \"precio\": 350.00,\n    \"stock\": 15\n  },\n  {\n    \"nombre\": \"Auriculares Bluetooth\",\n    \"descripcion\": \"Cancelación de ruido activa\",\n    \"precio\": 120.00,\n    \"stock\": 80\n  },\n  {\n    \"nombre\": \"Webcam HD\",\n    \"descripcion\": \"1080p, micrófono integrado\",\n    \"precio\": 45.00,\n    \"stock\": 200\n  },\n  {\n    \"nombre\": \"Hub USB-C\",\n    \"descripcion\": \"7 puertos, HDMI + Ethernet\",\n    \"precio\": 35.00,\n    \"stock\": 95\n  },\n  {\n    \"nombre\": \"Disco SSD 1TB\",\n    \"descripcion\": \"NVMe, lectura 3500MB/s\",\n    \"precio\": 78.00,\n    \"stock\": 60\n  },\n  {\n    \"nombre\": \"Silla ergonómica\",\n    \"descripcion\": \"Soporte lumbar, reposabrazos ajustables\",\n    \"precio\": 280.00,\n    \"stock\": 20\n  },\n  {\n    \"nombre\": \"Mousepad XL\",\n    \"descripcion\": \"Superficie de tela, base antideslizante\",\n    \"precio\": 15.00,\n    \"stock\": 300\n  },\n  {\n    \"nombre\": \"Cargador USB-C 65W\",\n    \"descripcion\": \"Carga rápida GaN, compacto\",\n    \"precio\": 30.00,\n    \"stock\": 150\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/productos/cargar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "productos", "cargar"]
             }
           }
         }
