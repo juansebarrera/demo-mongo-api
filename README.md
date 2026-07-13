@@ -35,21 +35,37 @@ API REST con Spring Boot + MongoDB + seguridad JWT (login, registro y refresh to
 
 3. **Crear el archivo `.env`** (no viaja con el repo, está en `.gitignore`)
 
-   Crea un archivo `.env` en la raíz del proyecto con:
+   Usa el template como base:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edita `.env` con tus valores. Al mínimo necesitas:
 
    ```env
    JWT_SECRET=<tu-clave-secreta>
+   ADMIN_SEED_PASSWORD=<tu-password-admin>
    ```
 
    > Si generas un `JWT_SECRET` nuevo en vez de reutilizar el anterior, no rompe nada: solo invalida los tokens JWT ya emitidos previamente.
 
 4. **Levantar la aplicación dockerizada**
 
+   La imagen pre-compilada se descarga automáticamente desde GHCR (no necesita compilar):
+
+   ```bash
+   docker compose pull
+   docker compose up
+   ```
+
+   Si preferís compilar localmente (por ejemplo, durante desarrollo):
+
    ```bash
    docker compose up --build
    ```
 
-   Esto levanta los servicios `mongo` (con healthcheck) y `app`, esta última esperando a que Mongo esté saludable antes de arrancar.
+   En ambos casos se levantan los servicios `mongo` (con healthcheck) y `app`, esta última esperando a que Mongo esté saludable antes de arrancar.
 
 5. **Verificar que todo funciona**
 
@@ -60,7 +76,11 @@ API REST con Spring Boot + MongoDB + seguridad JWT (login, registro y refresh to
 ## Comandos útiles
 
 ```bash
-# Levantar todo con Docker
+# Levantar todo con Docker (imagen pre-compilada desde GHCR)
+docker compose pull
+docker compose up
+
+# Levantar compilando localmente
 docker compose up --build
 
 # Bajar todo (⚠️ -v borra los datos de Mongo)
@@ -74,6 +94,12 @@ mvn test
 
 # Ver qué versión de flapdoodle resuelve Maven
 mvn dependency:tree | findstr flapdoodle
+
+# Exportar dump de MongoDB
+.\scripts\dump-mongo.ps1
+
+# Importar dump de MongoDB
+.\scripts\restore-mongo.ps1
 ```
 
 ## ⚠️ Detalle importante de Spring Boot 4.x
@@ -101,12 +127,76 @@ Las credenciales dummy usadas en tests (`jwt.secret`, etc.) están en `src/test/
 
 ## CI/CD
 
-El repo incluye un workflow de GitHub Actions (`.github/workflows/ci.yml`) que corre automáticamente en cada `push` y `pull request` hacia `main`:
+El repo incluye dos workflows de GitHub Actions:
+
+### `ci.yml` — Build, test y package
+
+Se ejecuta en cada `push` y `pull request` hacia `main`:
 
 1. Compila el proyecto (`mvn compile`)
 2. Ejecuta los tests (`mvn test`)
 3. Publica el reporte de Surefire como artefacto
 4. Empaqueta el JAR (`mvn package -DskipTests`)
+
+### `docker-publish.yml` — Build y push de imagen Docker
+
+Se ejecuta en cada `push` a `main` y manualmente (`workflow_dispatch`):
+
+1. Build de la imagen Docker (multi-etapa: Maven → JRE Alpine)
+2. Push a GitHub Container Registry (`ghcr.io/juansebarrera/demo-mongo-api`)
+3. Tags: `latest` y SHA del commit
+
+La imagen queda disponible para que otros desarrolladores la descarguen sin necesidad de compilar.
+
+## Desarrollo desde otro equipo
+
+Si necesitás desarrollar en otra máquina, seguí estos pasos:
+
+### 1. Autenticarse en GHCR
+
+Necesitás un Personal Access Token (PAT) de GitHub con scope `write:packages`:
+
+```bash
+echo <tu-pat> | docker login ghcr.io -u <tu-usuario> --password-stdin
+```
+
+> Si solo vas a **usar** la imagen (no modificarla), alcanza con un PAT con scope `read:packages`.
+
+### 2. Clonar y configurar
+
+```bash
+git clone https://github.com/juansebarrera/demo-mongo-api.git
+cd demo-mongo-api
+cp .env.example .env
+# Edita .env con tus valores
+```
+
+### 3. Descargar imagen y datos
+
+```bash
+# Descargar la imagen pre-compilada desde GHCR
+docker compose pull
+
+# Levantar la app
+docker compose up -d
+
+# Importar datos de MongoDB (si existe el dump en el repo)
+.\scripts\restore-mongo.ps1
+```
+
+### 4. Verificar
+
+- Swagger UI: http://localhost:8080/swagger-ui/index.html
+- GUI: http://localhost:8080/index.html
+
+### Scripts de MongoDB
+
+En `scripts/` hay utilidades para exportar e importar datos:
+
+| Script | Descripción |
+|--------|-------------|
+| `dump-mongo.ps1` / `.sh` | Exporta un dump de la DB al directorio `mongo-dump/` |
+| `restore-mongo.ps1` / `.sh` | Importa un dump desde `mongo-dump/` al contenedor |
 
 ## GUI — Single Page Application
 
