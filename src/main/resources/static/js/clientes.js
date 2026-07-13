@@ -156,7 +156,7 @@ const Clientes = (() => {
     };
 
     if (!body.nombre) {
-      alert('El nombre es obligatorio');
+      Toast.show('El nombre es obligatorio');
       return;
     }
 
@@ -169,7 +169,7 @@ const Clientes = (() => {
       closeModal();
       await load(currentPage);
     } catch (err) {
-      alert('Error: ' + err.message);
+      Toast.show(err.message);
     }
   }
 
@@ -179,7 +179,7 @@ const Clientes = (() => {
       await API.del(`/clientes/${id}`);
       await load(currentPage);
     } catch (err) {
-      alert('Error: ' + err.message);
+      Toast.show(err.message);
     }
   }
 
@@ -191,7 +191,7 @@ const Clientes = (() => {
     try {
       await API.download('/clientes/export', 'clientes.csv');
     } catch (err) {
-      alert('Error al exportar: ' + err.message);
+      Toast.show(err.message);
     }
   }
 
