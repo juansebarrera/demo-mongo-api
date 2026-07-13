@@ -1,0 +1,20 @@
+# PV local para desarrollo con minikube.
+# En producción, usa un StorageClass del cloud provider
+# (EBS, PersistentDisk, etc.) — no necesitas este archivo.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongo-pv
+  labels:
+    type: local
+    app.kubernetes.io/name: demo-mongo-api
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: standard
+  hostPath:
+    path: /data/mongo-pv
+    type: DirectoryOrCreate

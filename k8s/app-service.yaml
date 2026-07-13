@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  namespace: demo-mongo-api
+  labels:
+    app.kubernetes.io/name: demo-mongo-api
+    app.kubernetes.io/component: app
+spec:
+  selector:
+    app: app
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: LoadBalancer

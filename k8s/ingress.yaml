@@ -1,0 +1,30 @@
+# Ingress — opcional. Requiere un Ingress Controller instalado
+# en el cluster (nginx-ingress, traefik, etc.).
+#
+# Si usas minikube, habilita el addon:
+#   minikube addons enable ingress
+#
+# Si no necesitas un nombre de dominio, usa directamente el
+# Service LoadBalancer: kubectl get svc app -n demo-mongo-api
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  namespace: demo-mongo-api
+  labels:
+    app.kubernetes.io/name: demo-mongo-api
+    app.kubernetes.io/component: ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: demo.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app
+                port:
+                  number: 80
