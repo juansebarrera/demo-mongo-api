@@ -25,7 +25,10 @@
       <section id="section-productos">
         <div class="page-header">
           <h1>Productos</h1>
-          <button class="btn btn-primary" onclick="Productos.openCreate()">+ Nuevo</button>
+          <div class="header-actions">
+            <input type="text" class="search-input" id="searchProductos" placeholder="Buscar por nombre..." oninput="Productos.search(this.value)">
+            <button class="btn btn-primary" onclick="Productos.openCreate()">+ Nuevo</button>
+          </div>
         </div>
         <div class="table-container">
           <table>
@@ -41,13 +44,17 @@
             <tbody id="productosTable"></tbody>
           </table>
         </div>
+        <div class="pagination" id="paginationProductos"></div>
       </section>
 
       <!-- Clientes -->
       <section id="section-clientes" style="display:none">
         <div class="page-header">
           <h1>Clientes</h1>
-          <button class="btn btn-primary" onclick="Clientes.openCreate()">+ Nuevo</button>
+          <div class="header-actions">
+            <input type="text" class="search-input" id="searchClientes" placeholder="Buscar por nombre o email..." oninput="Clientes.search(this.value)">
+            <button class="btn btn-primary" onclick="Clientes.openCreate()">+ Nuevo</button>
+          </div>
         </div>
         <div class="table-container">
           <table>
@@ -63,6 +70,7 @@
             <tbody id="clientesTable"></tbody>
           </table>
         </div>
+        <div class="pagination" id="paginationClientes"></div>
       </section>
     </main>
   </div>

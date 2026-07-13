@@ -4,6 +4,8 @@ import com.example.demo_mongo_api.exception.ProductoNotFoundException;
 import com.example.demo_mongo_api.model.Producto;
 import com.example.demo_mongo_api.repository.ProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +20,13 @@ public class ProductoService {
         return productoRepository.findAll();
     }
 
+    public Page<Producto> listarPaginado(String search, Pageable pageable) {
+        if (search == null || search.isBlank()) {
+            return productoRepository.findAll(pageable);
+        }
+        return productoRepository.findByNombreContaining(search, pageable);
+    }
+
     public Producto buscarPorId(String id) {
         return productoRepository.findById(id)
                 .orElseThrow(() -> new ProductoNotFoundException(id));
@@ -28,13 +37,13 @@ public class ProductoService {
     }
 
     public Producto actualizar(String id, Producto producto) {
-        buscarPorId(id); // valida que exista, si no, lanza la excepción
+        buscarPorId(id);
         producto.setId(id);
         return productoRepository.save(producto);
     }
 
     public void eliminar(String id) {
-        buscarPorId(id); // valida que exista antes de eliminar
+        buscarPorId(id);
         productoRepository.deleteById(id);
     }
 }

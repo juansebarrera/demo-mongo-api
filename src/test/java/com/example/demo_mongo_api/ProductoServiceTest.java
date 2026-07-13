@@ -11,6 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,6 +55,44 @@ class ProductoServiceTest {
         assertThat(resultado).hasSize(1);
         assertThat(resultado.get(0).getNombre()).isEqualTo("Mouse");
         verify(productoRepository, times(1)).findAll();
+    }
+
+    @Test
+    void listarPaginado_sinSearch_deberiaRetornarTodosLosProductos() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Producto> page = new PageImpl<>(List.of(producto), pageable, 1);
+        when(productoRepository.findAll(pageable)).thenReturn(page);
+
+        Page<Producto> resultado = productoService.listarPaginado(null, pageable);
+
+        assertThat(resultado.getContent()).hasSize(1);
+        assertThat(resultado.getTotalElements()).isEqualTo(1);
+        verify(productoRepository).findAll(pageable);
+    }
+
+    @Test
+    void listarPaginado_conSearch_deberiaFiltrarPorNombre() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Producto> page = new PageImpl<>(List.of(producto), pageable, 1);
+        when(productoRepository.findByNombreContaining("Mouse", pageable)).thenReturn(page);
+
+        Page<Producto> resultado = productoService.listarPaginado("Mouse", pageable);
+
+        assertThat(resultado.getContent()).hasSize(1);
+        assertThat(resultado.getContent().get(0).getNombre()).isEqualTo("Mouse");
+        verify(productoRepository).findByNombreContaining("Mouse", pageable);
+    }
+
+    @Test
+    void listarPaginado_conSearchVacio_deberiaRetornarTodos() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Producto> page = new PageImpl<>(List.of(producto), pageable, 1);
+        when(productoRepository.findAll(pageable)).thenReturn(page);
+
+        Page<Producto> resultado = productoService.listarPaginado("  ", pageable);
+
+        assertThat(resultado.getContent()).hasSize(1);
+        verify(productoRepository).findAll(pageable);
     }
 
     @Test
