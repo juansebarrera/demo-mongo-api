@@ -108,7 +108,58 @@ El repo incluye un workflow de GitHub Actions (`.github/workflows/ci.yml`) que c
 3. Publica el reporte de Surefire como artefacto
 4. Empaqueta el JAR (`mvn package -DskipTests`)
 
+## GUI — Single Page Application
+
+Desde la rama `feature/gui-usuario` se agregó una interfaz web vanilla (HTML + CSS + JS) servida desde `src/main/resources/static/`, sin herramientas de build ni frameworks.
+
+### Archivos
+
+```
+src/main/resources/static/
+├── index.html          # Página de login/registro
+├── app.html            # Dashboard (requiere autenticación)
+├── css/
+│   └── style.css       # Estilos responsivos
+└── js/
+    ├── api.js          # Cliente HTTP con manejo de JWT (localStorage)
+    ├── auth.js         # Lógica de login y registro
+    ├── productos.js    # CRUD de productos con modales
+    └── clientes.js     # CRUD de clientes con modales
+```
+
+### Flujo
+
+1. El usuario accede a `/index.html` y se loguea o registra.
+2. `auth.js` llama a `POST /api/auth/login` y guarda el `accessToken` y `refreshToken` en `localStorage`.
+3. Se redirige a `/app.html`, que carga `api.js` → `productos.js` → `clientes.js`.
+4. Cada request desde `api.js` envía `Authorization: Bearer <token>` automáticamente.
+
+### Seguridad (backend)
+
+- `SecurityConfig` permite acceso libre a estáticos (`/`, `/index.html`, `/app.html`, `/css/**`, `/js/**`, `/favicon.ico`), a `/api/auth/**` y a Swagger.
+- Cualquier otro endpoint requiere autenticación.
+- `DELETE` en `/api/productos/{id}` y `/api/clientes/{id}` requiere rol `ADMIN` (`@PreAuthorize("hasRole('ADMIN')")`).
+- Errores 401 y 403 se responden en JSON desde un `AuthenticationEntryPoint` y `AccessDeniedHandler` custom.
+
+### Estado actual — pendiente
+
+**Problema conocido:** después de login exitoso y redirección a `app.html`, las llamadas a `/api/productos` y `/api/clientes` retornan **401 "Token invalido o ausente"**.
+
+**Posibles causas a investigar:**
+- El token no se está enviando en el header `Authorization`.
+- El token no es válido o expiró al momento de validarlo en `JwtAuthenticationFilter`.
+- `UsuarioDetailsServiceImpl` no carga correctamente el usuario desde MongoDB.
+- Falta lógica de refresh automático cuando el token expira.
+
+**Pasos para continuar:**
+1. Verificar en DevTools (Network) que el header `Authorization: Bearer ...` aparece en los requests.
+2. Inspeccionar el contenido del JWT (decodificar en jwt.io) para confirmar que tiene `roles` y no está expirado.
+3. Revisar `JwtService.isTokenValid()` y la firma HMAC.
+4. Revisar `UsuarioDetailsServiceImpl.loadUserByUsername()` para confirmar que busca el usuario correctamente en la colección `usuarios`.
+5. Implementar refresh automático del token en `api.js` cuando llegue un 401 (usar el `refreshToken` almacenado).
+
 ## Pendientes
 
-- Roles y `@PreAuthorize` para restringir endpoints sensibles (ej. `DELETE`) a `ROLE_ADMIN`
-- Tests automatizados para `/refresh-token` (probado manualmente en Postman)
+- [ ] Debug y fix del rechazo de JWT después de login (ver sección GUI — Estado actual)
+- [ ] Refresh automático del token en `api.js` cuando expire
+- [ ] Tests automatizados para `/refresh-token` (probado manualmente en Postman)
