@@ -30,6 +30,9 @@ const Clientes = (() => {
   async function load(page = 0) {
     currentPage = page;
     try {
+      if (perfilesCache.length === 0) {
+        await loadPerfiles();
+      }
       const params = new URLSearchParams({
         page: currentPage,
         size: pageSize,
