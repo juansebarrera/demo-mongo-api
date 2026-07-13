@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Mongo API - Panel</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <h2>Demo Mongo</h2>
+      <div class="user-badge" id="userBadge"></div>
+      <nav>
+        <a href="#" class="active" data-section="productos" onclick="App.showSection('productos')">Productos</a>
+        <a href="#" data-section="clientes" onclick="App.showSection('clientes')">Clientes</a>
+      </nav>
+      <div class="logout">
+        <a href="#" onclick="App.logout()">Cerrar sesion</a>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <!-- Productos -->
+      <section id="section-productos">
+        <div class="page-header">
+          <h1>Productos</h1>
+          <button class="btn btn-primary" onclick="Productos.openCreate()">+ Nuevo</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Descripcion</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="productosTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Clientes -->
+      <section id="section-clientes" style="display:none">
+        <div class="page-header">
+          <h1>Clientes</h1>
+          <button class="btn btn-primary" onclick="Clientes.openCreate()">+ Nuevo</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Telefono</th>
+                <th>Direccion</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="clientesTable"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal Productos -->
+  <div class="modal-overlay" id="modalOverlay" onclick="Productos.closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h2 id="modalTitle">Nuevo Producto</h2>
+      <input type="hidden" id="formId">
+      <div class="form-group">
+        <label for="pNombre">Nombre *</label>
+        <input type="text" id="pNombre" required>
+      </div>
+      <div class="form-group">
+        <label for="pDescripcion">Descripcion</label>
+        <input type="text" id="pDescripcion">
+      </div>
+      <div class="form-group">
+        <label for="pPrecio">Precio *</label>
+        <input type="number" id="pPrecio" step="0.01" min="0.01" required>
+      </div>
+      <div class="form-group">
+        <label for="pStock">Stock *</label>
+        <input type="number" id="pStock" min="0" required>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="Productos.closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="Productos.save()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Clientes -->
+  <div class="modal-overlay" id="modalOverlayC" onclick="Clientes.closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h2 id="modalTitleC">Nuevo Cliente</h2>
+      <input type="hidden" id="formIdC">
+      <div class="form-group">
+        <label for="cNombre">Nombre *</label>
+        <input type="text" id="cNombre" required>
+      </div>
+      <div class="form-group">
+        <label for="cEmail">Email</label>
+        <input type="email" id="cEmail">
+      </div>
+      <div class="form-group">
+        <label for="cTelefono">Telefono</label>
+        <input type="text" id="cTelefono">
+      </div>
+      <div class="form-group">
+        <label for="cDireccion">Direccion</label>
+        <input type="text" id="cDireccion">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="Clientes.closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="Clientes.save()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/productos.js"></script>
+  <script src="/js/clientes.js"></script>
+  <script>
+    const App = (() => {
+      if (!API.getTokens()) {
+        window.location.href = '/index.html';
+        return {};
+      }
+
+      document.getElementById('userBadge').textContent = API.getUser();
+
+      function showSection(name) {
+        document.querySelectorAll('.main-content section').forEach(s => s.style.display = 'none');
+        document.getElementById(`section-${name}`).style.display = 'block';
+        document.querySelectorAll('.sidebar nav a').forEach(a => {
+          a.classList.toggle('active', a.dataset.section === name);
+        });
+        if (name === 'productos') Productos.load();
+        if (name === 'clientes') Clientes.load();
+      }
+
+      function logout() {
+        API.clearTokens();
+        window.location.href = '/index.html';
+      }
+
+      showSection('productos');
+
+      return { showSection, logout };
+    })();
+  </script>
+</body>
+</html>

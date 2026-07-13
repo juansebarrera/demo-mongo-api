@@ -108,7 +108,92 @@ El repo incluye un workflow de GitHub Actions (`.github/workflows/ci.yml`) que c
 3. Publica el reporte de Surefire como artefacto
 4. Empaqueta el JAR (`mvn package -DskipTests`)
 
+## GUI — Single Page Application
+
+Desde la rama `feature/gui-usuario` se agregó una interfaz web vanilla (HTML + CSS + JS) servida desde `src/main/resources/static/`, sin herramientas de build ni frameworks.
+
+### Archivos
+
+```
+src/main/resources/static/
+├── index.html          # Página de login/registro
+├── app.html            # Dashboard (requiere autenticación)
+├── css/
+│   └── style.css       # Estilos responsivos
+└── js/
+    ├── api.js          # Cliente HTTP con manejo de JWT (localStorage)
+    ├── auth.js         # Lógica de login y registro
+    ├── productos.js    # CRUD de productos con modales
+    └── clientes.js     # CRUD de clientes con modales
+```
+
+### Flujo
+
+1. El usuario accede a `/index.html` y se loguea o registra.
+2. `auth.js` llama a `POST /api/auth/login` y guarda el `accessToken` y `refreshToken` en `localStorage`.
+3. Se redirige a `/app.html`, que carga `api.js` → `productos.js` → `clientes.js`.
+4. Cada request desde `api.js` envía `Authorization: Bearer <token>` automáticamente.
+
+### Seguridad (backend)
+
+- `SecurityConfig` permite acceso libre a estáticos (`/`, `/index.html`, `/app.html`, `/css/**`, `/js/**`, `/favicon.ico`), a `/api/auth/**` y a Swagger.
+- Cualquier otro endpoint requiere autenticación.
+- `DELETE` en `/api/productos/{id}` y `/api/clientes/{id}` requiere rol `ADMIN` (`@PreAuthorize("hasRole('ADMIN')")`).
+- Errores 401 y 403 se responden en JSON desde un `AuthenticationEntryPoint` y `AccessDeniedHandler` custom.
+
+### Bug resuelto: 401 después de login
+
+**Problema:** después de login exitoso y redirección a `app.html`, las llamadas a `/api/productos` y `/api/clientes` retornaban **401 "Token invalido o ausente"**.
+
+**Causa raíz:** desajuste de nombres de campo entre backend y frontend.
+
+El record `AuthResponse` serializaba el access token con el campo `"token"`:
+
+```java
+// AuthResponse.java (ANTES)
+public record AuthResponse(String token, String refreshToken) {}
+// JSON: {"token":"eyJhbG...", "refreshToken":"..."}
+```
+
+Pero el frontend leía `data.accessToken`, que era `undefined`:
+
+```javascript
+// auth.js — guardaba undefined
+const data = await API.post('/auth/login', { username, password });
+API.saveTokens(data.accessToken, data.refreshToken); // data.accessToken === undefined
+```
+
+Resultado: cada request enviaba `Bearer undefined` → JWT inválido → 401.
+
+**Fix:** `AuthResponse.java` renombrado de `token` a `accessToken`:
+
+```java
+// AuthResponse.java (DESPUÉS)
+public record AuthResponse(String accessToken, String refreshToken) {}
+// JSON: {"accessToken":"eyJhbG...", "refreshToken":"..."}
+```
+
+**Lección:** cuando el backend y frontend están en el mismo repo, verificar que los nombres de campo en DTOs/records coinciden exactamente con lo que el frontend espera leer. Los records de Java serializan por defecto con el nombre del campo, no con `@JsonProperty`.
+
 ## Pendientes
 
-- Roles y `@PreAuthorize` para restringir endpoints sensibles (ej. `DELETE`) a `ROLE_ADMIN`
-- Tests automatizados para `/refresh-token` (probado manualmente en Postman)
+### Prioridad alta (producción)
+
+- [ ] Paginación y filtrado en `GET /api/productos` y `/api/clientes` (parámetros `page`, `size`, `sort`)
+- [ ] Búsqueda por nombre (productos) y email/nombre (clientes)
+- [ ] Validación robusta con mensajes personalizados desde `messages.properties`
+- [ ] Health checks con `spring-boot-starter-actuator`
+
+### Prioridad mediana (UX)
+
+- [ ] Dashboard con estadísticas (conteo de productos, clientes, usuarios)
+- [ ] Gestión de usuarios para admin (CRUD, asignación de roles, desactivación)
+- [ ] Cambio de contraseña desde la GUI
+- [ ] Exportar listas a CSV
+
+### Prioridad baja (calidad de vida)
+
+- [ ] Dark mode con toggle y `localStorage`
+- [ ] Notificaciones toast (reemplazar `alert()`)
+- [ ] Tests de integración para flujos completos (login → CRUD → refresh)
+- [ ] Logging estructurado con correlation IDs
