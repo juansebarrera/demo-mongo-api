@@ -28,9 +28,9 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: 86400000
       JWT_REFRESH_EXPIRATION: 604800000
-    depends_on:
-      mongo:
-        condition: service_healthy
+      SPRING_PROFILES_ACTIVE: dev          # <-- NUEVO
+      ADMIN_SEED_USERNAME: admin           # <-- NUEVO (opcional, "admin" es el default)
+      ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD}  # <-- NUEVO     
 
 volumes:
   mongo-data:
