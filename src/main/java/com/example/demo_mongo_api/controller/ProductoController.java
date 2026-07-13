@@ -1,5 +1,6 @@
 package com.example.demo_mongo_api.controller;
 
+import com.example.demo_mongo_api.controller.dto.BulkResponse;
 import com.example.demo_mongo_api.model.Producto;
 import com.example.demo_mongo_api.service.ProductoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -86,5 +87,19 @@ public class ProductoController {
     public ResponseEntity<Void> eliminar(@PathVariable String id) {
         productoService.eliminar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Carga masiva de productos en formato JSON")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Todos los registros insertados"),
+            @ApiResponse(responseCode = "207", description = "Inserción parcial con errores de validación")
+    })
+    @PostMapping("/cargar")
+    public ResponseEntity<BulkResponse> cargar(@RequestBody List<Producto> productos) {
+        BulkResponse response = productoService.cargar(productos);
+        if (response.fallidos() > 0) {
+            return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

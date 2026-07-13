@@ -1,6 +1,8 @@
 package com.example.demo_mongo_api;
 
 import com.example.demo_mongo_api.controller.ProductoController;
+import com.example.demo_mongo_api.controller.dto.BulkError;
+import com.example.demo_mongo_api.controller.dto.BulkResponse;
 import com.example.demo_mongo_api.exception.ProductoNotFoundException;
 import com.example.demo_mongo_api.model.Producto;
 import com.example.demo_mongo_api.security.JwtService;
@@ -142,5 +144,57 @@ class ProductoControllerTest {
                         .content(objectMapper.writeValueAsString(productoValido)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("abc123"));
+    }
+
+    @Test
+    void cargar_todosValidos_deberiaRetornar201() throws Exception {
+        Producto p1 = new Producto();
+        p1.setNombre("Mouse");
+        p1.setPrecio(25.0);
+        p1.setStock(10);
+
+        Producto p2 = new Producto();
+        p2.setNombre("Teclado");
+        p2.setPrecio(50.0);
+        p2.setStock(20);
+
+        BulkResponse response = new BulkResponse(2, 2, 0, List.of("id1", "id2"), List.of());
+        when(productoService.cargar(any(List.class))).thenReturn(response);
+
+        mockMvc.perform(post("/api/productos/cargar")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(List.of(p1, p2))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.totalRecibidos").value(2))
+                .andExpect(jsonPath("$.insertados").value(2))
+                .andExpect(jsonPath("$.fallidos").value(0))
+                .andExpect(jsonPath("$.ids").isArray())
+                .andExpect(jsonPath("$.ids.length()").value(2));
+    }
+
+    @Test
+    void cargar_conErrores_deberiaRetornar207() throws Exception {
+        Producto p1 = new Producto();
+        p1.setNombre("Mouse");
+        p1.setPrecio(25.0);
+        p1.setStock(10);
+
+        Producto p2 = new Producto();
+        p2.setNombre("");
+        p2.setPrecio(-5.0);
+
+        BulkError error = new BulkError(1, "nombre", "El nombre es obligatorio");
+        BulkResponse response = new BulkResponse(2, 1, 1, List.of("id1"), List.of(error));
+        when(productoService.cargar(any(List.class))).thenReturn(response);
+
+        mockMvc.perform(post("/api/productos/cargar")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(List.of(p1, p2))))
+                .andExpect(status().isMultiStatus())
+                .andExpect(jsonPath("$.totalRecibidos").value(2))
+                .andExpect(jsonPath("$.insertados").value(1))
+                .andExpect(jsonPath("$.fallidos").value(1))
+                .andExpect(jsonPath("$.errores[0].index").value(1))
+                .andExpect(jsonPath("$.errores[0].campo").value("nombre"));
     }
 }
