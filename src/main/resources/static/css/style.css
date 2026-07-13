@@ -427,6 +427,64 @@ tr:hover td { background: #f1f5f9; }
   cursor: not-allowed;
 }
 
+/* Dark mode */
+.dark {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.dark tr:hover td { background: #1e293b; }
+.dark th { background: #0f172a; }
+.dark .error-msg { background: #450a0a; }
+.dark .badge-success { background: #052e16; color: #4ade80; }
+.dark .badge-danger { background: #450a0a; color: #f87171; }
+
+/* Theme toggle */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1.25rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text);
+  user-select: none;
+}
+
+.theme-toggle:hover { background: var(--bg); }
+
+.theme-toggle .toggle-track {
+  width: 36px;
+  height: 20px;
+  background: var(--border);
+  border-radius: 10px;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.dark .theme-toggle .toggle-track {
+  background: var(--primary);
+}
+
+.theme-toggle .toggle-thumb {
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.dark .theme-toggle .toggle-thumb {
+  transform: translateX(16px);
+}
+
 @media (max-width: 768px) {
   .header-actions {
     flex-direction: column;

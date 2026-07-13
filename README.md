@@ -566,7 +566,7 @@ public record AuthResponse(String accessToken, String refreshToken) {}
 
 ### Prioridad baja (calidad de vida)
 
-- [ ] Dark mode con toggle y `localStorage`
+- [x] Dark mode con toggle y `localStorage`
 - [ ] Notificaciones toast (reemplazar `alert()`)
 - [ ] Tests de integración para flujos completos (login → CRUD → refresh)
 - [ ] Logging estructurado con correlation IDs

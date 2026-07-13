@@ -19,6 +19,10 @@
       <div class="logout">
         <a href="#" onclick="App.logout()">Cerrar sesion</a>
       </div>
+      <div class="theme-toggle" onclick="App.toggleTheme()">
+        <span id="themeLabel">Modo oscuro</span>
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      </div>
     </aside>
 
     <main class="main-content">
@@ -217,6 +221,20 @@
         document.getElementById('navUsuarios').style.display = '';
       }
 
+      // Theme
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark');
+        document.getElementById('themeLabel').textContent = 'Modo claro';
+      }
+
+      function toggleTheme() {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        document.getElementById('themeLabel').textContent = isDark ? 'Modo claro' : 'Modo oscuro';
+      }
+
       function showSection(name) {
         document.querySelectorAll('.main-content section').forEach(s => s.style.display = 'none');
         document.getElementById(`section-${name}`).style.display = 'block';
@@ -235,7 +253,7 @@
 
       showSection('productos');
 
-      return { showSection, logout };
+      return { showSection, logout, toggleTheme };
     })();
   </script>
 </body>
