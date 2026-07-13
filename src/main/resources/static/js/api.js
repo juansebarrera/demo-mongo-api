@@ -136,3 +136,30 @@ const API = (() => {
     download,
   };
 })();
+
+const Toast = (() => {
+  let container;
+
+  function getContainer() {
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
+    return container;
+  }
+
+  function show(message, type = 'error', duration = 3500) {
+    const c = getContainer();
+    const el = document.createElement('div');
+    el.className = 'toast toast-' + type;
+    el.textContent = message;
+    c.appendChild(el);
+    setTimeout(() => {
+      el.classList.add('toast-hiding');
+      setTimeout(() => el.remove(), 300);
+    }, duration);
+  }
+
+  return { show };
+})();

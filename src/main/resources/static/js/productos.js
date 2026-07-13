@@ -125,7 +125,7 @@ const Productos = (() => {
     };
 
     if (!body.nombre || isNaN(body.precio) || isNaN(body.stock)) {
-      alert('Completa todos los campos correctamente');
+      Toast.show('Completa todos los campos correctamente');
       return;
     }
 
@@ -138,7 +138,7 @@ const Productos = (() => {
       closeModal();
       await load(currentPage);
     } catch (err) {
-      alert('Error: ' + err.message);
+      Toast.show(err.message);
     }
   }
 
@@ -148,7 +148,7 @@ const Productos = (() => {
       await API.del(`/productos/${id}`);
       await load(currentPage);
     } catch (err) {
-      alert('Error: ' + err.message);
+      Toast.show(err.message);
     }
   }
 
@@ -160,7 +160,7 @@ const Productos = (() => {
     try {
       await API.download('/productos/export', 'productos.csv');
     } catch (err) {
-      alert('Error al exportar: ' + err.message);
+      Toast.show(err.message);
     }
   }
 

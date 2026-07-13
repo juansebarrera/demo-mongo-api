@@ -58,7 +58,7 @@ const Usuarios = (() => {
     const roles = [document.getElementById('uRoles').value];
 
     if (!username) {
-      alert('El nombre de usuario es obligatorio');
+      Toast.show('El nombre de usuario es obligatorio');
       return;
     }
 
@@ -68,7 +68,7 @@ const Usuarios = (() => {
       } else {
         const password = document.getElementById('uPassword').value;
         if (!password) {
-          alert('La contraseña es obligatoria');
+          Toast.show('La contraseña es obligatoria');
           return;
         }
         await API.post('/usuarios', { username, password, roles });
@@ -76,7 +76,7 @@ const Usuarios = (() => {
       closeModal();
       await load();
     } catch (err) {
-      alert('Error: ' + err.message);
+      Toast.show(err.message);
     }
   }
 
@@ -86,7 +86,7 @@ const Usuarios = (() => {
       await API.del(`/usuarios/${id}`);
       await load();
     } catch (err) {
-      alert('Error: ' + err.message);
+      Toast.show(err.message);
     }
   }
 
@@ -95,7 +95,7 @@ const Usuarios = (() => {
       await API.put(`/usuarios/${id}/toggle-active`);
       await load();
     } catch (err) {
-      alert('Error: ' + err.message);
+      Toast.show(err.message);
     }
   }
 
@@ -109,15 +109,15 @@ const Usuarios = (() => {
     const id = document.getElementById('formIdP').value;
     const newPassword = document.getElementById('uNewPassword').value;
     if (!newPassword) {
-      alert('La contraseña es obligatoria');
+      Toast.show('La contraseña es obligatoria');
       return;
     }
     try {
       await API.put(`/usuarios/${id}/password`, { currentPassword: '', newPassword });
       closeModalP();
-      alert('Contraseña actualizada correctamente');
+      Toast.show('Contraseña actualizada correctamente', 'success');
     } catch (err) {
-      alert('Error: ' + err.message);
+      Toast.show(err.message);
     }
   }
 
