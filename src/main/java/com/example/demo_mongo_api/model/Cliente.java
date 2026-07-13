@@ -18,11 +18,12 @@ public class Cliente {
     private String id;
 
     @Schema(description = "Nombre completo del cliente", example = "Juan Pérez")
-    @NotBlank(message = "El nombre es obligatorio")
+    @NotBlank(message = "{cliente.nombre.notblank}")
     private String nombre;
 
     @Schema(description = "Correo electrónico del cliente", example = "juan.perez@example.com")
-    @Email(message = "El correo electrónico no es válido")
+    @NotBlank(message = "{cliente.email.notblank}")
+    @Email(message = "{cliente.email.email}")
     private String email;
 
     @Schema(description = "Número de teléfono del cliente", example = "+34 600 123 456")

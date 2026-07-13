@@ -170,6 +170,55 @@ mvn test
 
 Las credenciales dummy usadas en tests (`jwt.secret`, etc.) están en `src/test/resources/application.properties`.
 
+## Validación de datos
+
+Los mensajes de validación están externalizados en `src/main/resources/messages.properties`, siguiendo la convención `{entidad}.{campo}.{validación}`.
+
+### Modelo de Mensajes
+
+```properties
+# Producto
+producto.nombre.notblank=El nombre del producto es obligatorio
+producto.precio.positive=El precio del producto debe ser mayor a 0
+producto.stock.min=El stock del producto no puede ser negativo
+
+# Cliente
+cliente.nombre.notblank=El nombre del cliente es obligatorio
+cliente.email.notblank=El correo electrónico es obligatorio
+cliente.email.email=El correo electrónico no tiene un formato válido
+```
+
+### Uso en anotaciones
+
+```java
+@NotBlank(message = "{producto.nombre.notblank}")
+private String nombre;
+```
+
+### Respuesta de error estandarizada
+
+Cuando falla la validación, todos los errores se devuelven con el mismo formato:
+
+```json
+{
+  "timestamp": "2026-07-13T00:00:00",
+  "status": 400,
+  "error": "Bad Request",
+  "mensaje": "Error de validación",
+  "errores": {
+    "nombre": "El nombre del producto es obligatorio",
+    "precio": "El precio del producto debe ser mayor a 0"
+  },
+  "path": "/api/productos"
+}
+```
+
+### Agregar nuevas validaciones
+
+1. Agregar el mensaje en `messages.properties`
+2. Usar la clave en la anotación: `@NotBlank(message = "{nueva.clave}")`
+3. No es necesario tocar el `GlobalExceptionHandler`
+
 ## CI/CD
 
 El repo incluye dos workflows de GitHub Actions:
@@ -357,6 +406,8 @@ public record AuthResponse(String accessToken, String refreshToken) {}
 - [x] Búsqueda por nombre (productos) y email/nombre (clientes)
 - [ ] Validación robusta con mensajes personalizados desde `messages.properties`
 - [x] Health checks con `spring-boot-starter-actuator`
+- [x] Validación robusta con mensajes personalizados desde `messages.properties`
+- [ ] Health checks con `spring-boot-starter-actuator`
 
 ### Prioridad mediana (UX)
 
