@@ -177,4 +177,23 @@ public record AuthResponse(String accessToken, String refreshToken) {}
 
 ## Pendientes
 
-_No hay pendientes abiertos._
+### Prioridad alta (producción)
+
+- [ ] Paginación y filtrado en `GET /api/productos` y `/api/clientes` (parámetros `page`, `size`, `sort`)
+- [ ] Búsqueda por nombre (productos) y email/nombre (clientes)
+- [ ] Validación robusta con mensajes personalizados desde `messages.properties`
+- [ ] Health checks con `spring-boot-starter-actuator`
+
+### Prioridad mediana (UX)
+
+- [ ] Dashboard con estadísticas (conteo de productos, clientes, usuarios)
+- [ ] Gestión de usuarios para admin (CRUD, asignación de roles, desactivación)
+- [ ] Cambio de contraseña desde la GUI
+- [ ] Exportar listas a CSV
+
+### Prioridad baja (calidad de vida)
+
+- [ ] Dark mode con toggle y `localStorage`
+- [ ] Notificaciones toast (reemplazar `alert()`)
+- [ ] Tests de integración para flujos completos (login → CRUD → refresh)
+- [ ] Logging estructurado con correlation IDs
