@@ -77,3 +77,13 @@ Tests use Flapdoodle embedded Mongo (configured in `src/test/resources/applicati
 ## Scripts
 
 `scripts/dump-mongo.ps1` / `scripts/restore-mongo.ps1` (and `.sh` variants) for MongoDB data export/import. Requires `docker exec` against the running container.
+
+## Interaction rules
+
+- **Branching:** All new work must be done on a new feature branch created from `main`. The user performs the merge.
+- **Commits:** Spanish, concise, descriptive of the change.
+- **Testing:** Always run `mvn compile && mvn test` after code changes before reporting completion.
+- **Push:** No push unless user explicitly requests it.
+- **Comunication:** Concise responses with a summary of changes made and test results.
+- **Frontend/backend:** Both layers must be updated together when a change affects both.
+- **Documentation:** Every change must be documented in `README.md` (API endpoints, models, examples). If the change affects API requests/responses, update `demo-mongo-api.postman_collection.json` as well.
