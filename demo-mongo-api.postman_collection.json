@@ -295,6 +295,32 @@
               "path": ["api", "clientes", "cargar"]
             }
           }
+        },
+        {
+          "name": "Exportar clientes a CSV",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta es CSV (200)', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.response.to.have.header('Content-Type', 'text/csv; charset=UTF-8');",
+                  "    pm.response.to.have.header('Content-Disposition');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/export",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes", "export"]
+            }
+          }
         }
       ]
     },
@@ -420,6 +446,32 @@
               "raw": "{{baseUrl}}/api/productos/cargar",
               "host": ["{{baseUrl}}"],
               "path": ["api", "productos", "cargar"]
+            }
+          }
+        },
+        {
+          "name": "Exportar productos a CSV",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Respuesta es CSV (200)', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.response.to.have.header('Content-Type', 'text/csv; charset=UTF-8');",
+                  "    pm.response.to.have.header('Content-Disposition');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/productos/export",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "productos", "export"]
             }
           }
         }
