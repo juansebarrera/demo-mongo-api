@@ -1,0 +1,17 @@
+# Headless Service para MongoDB — permite hostname estable "mongo"
+# dentro del cluster (necesario para StatefulSet).
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: demo-mongo-api
+  labels:
+    app.kubernetes.io/name: demo-mongo-api
+    app.kubernetes.io/component: mongo
+spec:
+  selector:
+    app: mongo
+  ports:
+    - port: 27017
+      targetPort: 27017
+  clusterIP: None

@@ -55,6 +55,7 @@ ADMIN_SEED_PASSWORD=<admin password>
 - **DB:** MongoDB via Spring Data
 - **Package:** `com.example.demo_mongo_api`
 - **Layers:** `controller/` → `service/` → `repository/` (standard Spring pattern)
+- **Entities:** Producto, Cliente (with embedded PerfilRiesgo snapshot), Usuario, RefreshToken, PerfilRiesgo
 - **DTOs:** Java `record` types in `controller/dto/` — field names serialize as-is (no `@JsonProperty`), must match frontend expectations
 - **Frontend:** Vanilla SPA in `src/main/resources/static/` (HTML + CSS + JS, no build step)
 - **Docs:** Swagger UI at `/swagger-ui/index.html`, OpenAPI at `/v3/api-docs`
@@ -63,6 +64,7 @@ ADMIN_SEED_PASSWORD=<admin password>
 
 - `/api/auth/**`, `/actuator/**`, static files, Swagger: public
 - All other endpoints: require JWT
+- `/api/usuarios/**` and `/api/perfil-riesgo/**`: require `ROLE_ADMIN` (except `/api/perfil-riesgo/activos` which is open to any authenticated user)
 - `DELETE` on `/api/productos/{id}` and `/api/clientes/{id}`: require `ROLE_ADMIN`
 - 401/403 return JSON (custom handlers in `SecurityConfig`)
 
@@ -74,9 +76,13 @@ Messages externalized in `src/main/resources/messages.properties` using `{entity
 
 Tests use Flapdoodle embedded Mongo (configured in `src/test/resources/application.properties`). They are self-contained — no Docker or external services required. Test credentials are dummy values in that properties file.
 
+- **Unit tests:** `@WebMvcTest` with `@MockitoBean` (Boot 4.x annotation, not `@MockBean`)
+- **Integration test:** `FlujoCompletoTest` — `@SpringBootTest` covering register → login → CRUD → refresh → CSV export → auth errors
+
 ## Scripts
 
-`scripts/dump-mongo.ps1` / `scripts/restore-mongo.ps1` (and `.sh` variants) for MongoDB data export/import. Requires `docker exec` against the running container.
+- `scripts/dump-mongo.ps1` / `scripts/restore-mongo.ps1` (and `.sh` variants) for MongoDB data export/import. Requires `docker exec` against the running container.
+- `scripts/deploy-k8s.ps1` / `scripts/deploy-k8s.sh` for Kubernetes deployment. Requires `kubectl` configured.
 
 ## Interaction rules
 

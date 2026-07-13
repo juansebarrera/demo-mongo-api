@@ -541,6 +541,112 @@ El `docker-compose.yml` ya incluye un healthcheck para el servicio `app` que usa
 
 Los endpoints de actuator (`/actuator/**`) están exentos de autenticación JWT para que Docker y balanceadores de carga puedan verificar el estado sin credenciales.
 
+## Kubernetes
+
+El proyecto incluye manifiestos Kubernetes para desplegar app + MongoDB en un cluster.
+
+### Estructura de manifiestos
+
+```
+k8s/
+├── namespace.yaml          # Namespace demo-mongo-api
+├── secrets.yaml            # JWT_SECRET, credenciales Mongo (base64)
+├── configmap.yaml          # Variables no sensibles (SPRING_PROFILES_ACTIVE, etc.)
+├── mongo-service.yaml      # Service headless para MongoDB
+├── mongo-statefulset.yaml  # MongoDB con volumen persistente (1Gi)
+├── mongo-pv.yaml           # PersistentVolume local (solo minikube/desarrollo)
+├── app-deployment.yaml     # Deployment de la API (2 réplicas)
+├── app-service.yaml        # Service LoadBalancer
+└── ingress.yaml            # Ingress con nombre de dominio (opcional)
+```
+
+### Prerrequisitos
+
+- `kubectl` configurado apuntando al cluster
+- Para desarrollo local: [minikube](https://minikube.sigs.k8s.io/) o [kind](https://kind.sigs.k8s.io/)
+- La imagen debe estar en GHCR (ya publicada por `docker-publish.yml`)
+
+### Despliegue rápido
+
+```bash
+# Linux/macOS
+./scripts/deploy-k8s.sh
+
+# Windows (PowerShell)
+.\scripts\deploy-k8s.ps1
+```
+
+### Despliegue manual
+
+```bash
+# 1. Crear namespace y secretos
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/secrets.yaml
+kubectl apply -f k8s/configmap.yaml
+
+# 2. MongoDB
+kubectl apply -f k8s/mongo-service.yaml
+kubectl apply -f k8s/mongo-statefulset.yaml
+kubectl wait --for=condition=ready pod -l app=mongo -n demo-mongo-api --timeout=120s
+
+# 3. App
+kubectl apply -f k8s/app-service.yaml
+kubectl apply -f k8s/app-deployment.yaml
+kubectl wait --for=condition=ready pod -l app=app -n demo-mongo-api --timeout=120s
+```
+
+### Acceso a la app
+
+```bash
+# Port-forward (funciona en cualquier cluster)
+kubectl port-forward svc/app 8080:80 -n demo-mongo-api
+# Luego: http://localhost:8080
+
+# Ver IP del LoadBalancer (si el cluster lo soporta)
+kubectl get svc app -n demo-mongo-api
+```
+
+### Secretos
+
+Los valores en `k8s/secrets.yaml` son de ejemplo. **En producción**, genera los valores reales:
+
+```bash
+echo -n 'tu-jwt-secret' | base64
+echo -n 'tu-password-admin' | base64
+```
+
+Y reemplaza los valores en el archivo. Nunca commitees secretos reales al repo.
+
+### Diferencias vs Docker Compose
+
+| Aspecto | Docker Compose | Kubernetes |
+|---|---|---|
+| Mongo hostname | `mongo` (service name) | `mongo` (headless service + StatefulSet) |
+| Datos persistentes | Named volume | PersistentVolumeClaim (1Gi) |
+| Secretos | `.env` | `Secret` + `secretKeyRef` |
+| Health checks | `docker-compose.yml` | `readinessProbe` + `livenessProbe` |
+| Réplicas | 1 | 2 (configurable en Deployment) |
+| Exposición | `ports: 8080:8080` | Service LoadBalancer / Ingress |
+
+### Comandos útiles
+
+```bash
+# Ver pods
+kubectl get pods -n demo-mongo-api
+
+# Ver logs de la app
+kubectl logs -l app=app -n demo-mongo-api -f
+
+# Reiniciar la app (rolling update)
+kubectl rollout restart deployment/app -n demo-mongo-api
+
+# Verificar estado
+kubectl get all -n demo-mongo-api
+
+# Eliminar todo
+kubectl delete namespace demo-mongo-api
+```
+
 ## Desarrollo desde otro equipo
 
 Si necesitás desarrollar en otra máquina, seguí estos pasos:

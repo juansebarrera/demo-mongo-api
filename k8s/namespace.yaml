@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo-mongo-api
+  labels:
+    app.kubernetes.io/name: demo-mongo-api
+    app.kubernetes.io/part-of: demo-mongo-api
